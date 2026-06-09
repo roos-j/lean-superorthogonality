@@ -4,8 +4,8 @@ noncomputable section
 
 open MeasureTheory
 
-variable {α : Type*} [MeasurableSpace α]
-variable {μ : Measure α}
+variable {α : Type*} [MeasureSpace α]
+variable (μ : Measure α := by volume_tac)
 
 variable {ι : Type*} [Countable ι]
 
@@ -18,6 +18,8 @@ def type_iv_superorthogonal (f : ι → α → ℂ) (r : ℕ) :=
 
 def sqfct (f : ι → α → ℂ) (x : α) := (∑' j, ‖f j x‖ ^ 2) ^ (2 : ℝ)⁻¹
 
-
+theorem sqfct_estimate_of_type_iv_superorthogonal {f : ι → α → ℂ}
+    (hf : type_iv_superorthogonal μ f r) : MemLp (sqfct f) (2 * r) μ := by
+    sorry
 
 end
