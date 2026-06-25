@@ -27,8 +27,8 @@ namespace Codex
 
 #check pointwise_estimate
 
-protected theorem sqfct_estimate_of_type_iv_superorthogonal {f : ι → α → ℂ}
-    (hf : type_iv_superorthogonal μ f r) :
+theorem sqfct_estimate_of_type_iv_superorthogonal {f : ι → α → ℂ}
+    (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (fun x ↦ ∑' j, f j x) (2 * r) μ ≤ C r * eLpNorm (sqfct f) (2 * r) μ  := by
   sorry
 

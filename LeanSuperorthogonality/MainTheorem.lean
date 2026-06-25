@@ -17,7 +17,8 @@ Formalizing arXiv:2212.08956
 
 namespace Superorthogonal
 
-open MeasureTheory Nat Set
+open MeasureTheory Nat Set Complex
+open scoped ComplexConjugate
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
@@ -26,7 +27,7 @@ variable {ι : Type*} [Countable ι]
 variable {r : ℕ}
 
 theorem sqfct_estimate_of_type_iv_superorthogonal {f : ι → α → ℂ}
-    (hf : type_iv_superorthogonal μ f r) :
+    (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (fun x ↦ ∑' j, f j x) (2 * r) μ ≤ C r * eLpNorm (sqfct f) (2 * r) μ  := by
   sorry
 

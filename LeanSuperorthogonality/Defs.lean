@@ -15,7 +15,8 @@ Formalizing arXiv:2212.08956
 
 namespace Superorthogonal
 
-open MeasureTheory Nat Set
+open MeasureTheory Nat Set Complex
+open scoped ComplexConjugate
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
@@ -30,9 +31,15 @@ variable {r : ℕ}
 /-- The `k` tuple `j` consists of all distinct indices. -/
 def all_distinct (k : ℕ) (j : Fin k → ι) := ∀ i i', i ≠ i' → j i ≠ j i'
 
-/-- `f` is a family of Type IV superorthogonal functions -/
-def type_iv_superorthogonal (f : ι → α → ℂ) (r : ℕ) :=
-    ∀ j : Fin (2 * r) → ι, all_distinct (2 * r) j → ∫ x, ∏ i, f (j i) x ∂μ = 0
+/-- The product function `x ↦ ∏ i < r, f (j i) x * ∏ i ≥ r, conj f (j i) x` -/
+abbrev cprod (f : ι → α → ℂ) {r : ℕ} (j : Fin (2 * r) → ι) :=
+  fun x ↦ ∏ i : Fin (2 * r), if i < r then f (j i) x else star (f (j i) x)
+
+/-- Type IV superorthogonality of a family of functions -/
+structure TypeIVSuperorthogonal (f : ι → α → ℂ) (r : ℕ) : Prop where
+  measurable : ∀ j, Measurable (f j)
+  integrable_cprod : ∀ j : Fin (2 * r) → ι, all_distinct (2 * r) j → Integrable (cprod f j) μ
+  superorthogonal : ∀ j : Fin (2 * r) → ι, all_distinct (2 * r) j → ∫ x, cprod f j x ∂μ = 0
 
 /-- Square-function associated with the family of functions `f` -/
 def sqfct (f : ι → α → ℂ) (x : α) := (∑' j, ‖f j x‖ ^ 2) ^ (2 : ℝ)⁻¹
