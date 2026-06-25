@@ -19,7 +19,6 @@ Fill `sorry`s as requested by the user, using the mathematical hints and sources
 - Existing declarations marked `private` are AI-generated scaffolding. You may modify, replace, or delete them as needed, but only to support the requested target proof.
 - Declarations not marked `private` are target declarations. Do not change their names, statements, hypotheses, visibility, attributes, namespace placement, or surrounding structure. You may however make any changes to their proofs and your task is to eventually eliminate all `sorry`s.
 - Any new declaration you introduce, including definitions, abbrevs, lemmas, and theorems, must be marked `private`.
-- Prefer local, narrowly useful helper lemmas over broad API additions.
 
 ## Workflow
 
