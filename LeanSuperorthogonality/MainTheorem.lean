@@ -40,8 +40,8 @@ theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
     {f : ι → Lp ℂ (2 * r) μ} (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
-    Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  := by
-  sorry
+    Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  :=
+  Codex.sqfct_estimate_of_type_iv_superorthogonal hr hf hsum hsq
 
 end Superorthogonal
 

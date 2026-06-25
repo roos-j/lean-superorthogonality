@@ -5,3 +5,4 @@ import LeanSuperorthogonality.MainTheorem
 open Superorthogonality
 
 #print axioms pointwise_estimate
+#print axioms sqfct_estimate_of_type_iv_superorthogonal
