@@ -1,1 +1,7 @@
-import LeanSuperorthogonality.Basic
+import LeanSuperorthogonality.Defs
+import LeanSuperorthogonality.PointwiseEstimate
+import LeanSuperorthogonality.MainTheorem
+
+open Superorthogonality
+
+#print axioms pointwise_estimate
