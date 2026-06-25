@@ -7,6 +7,8 @@ module
 
 public import LeanSuperorthogonality.Defs
 
+import LeanSuperorthogonality.Codex.MainTheorem
+
 -- import LeanSuperorthogonality.Codex.PointwiseEstimate
 
 /-!
@@ -26,10 +28,12 @@ variable {ι : Type*} [Countable ι]
 
 variable {r : ℕ}
 
-theorem sqfct_estimate_of_type_iv_superorthogonal {f : ι → α → ℂ}
+open Codex (sqfct_estimate_of_type_iv_superorthogonal_finite) in
+/-- Theorem 1 of arXiv:2212.08956 for the special case of finite index sets. -/
+theorem sqfct_estimate_of_type_iv_superorthogonal_finite [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
-    eLpNorm (fun x ↦ ∑' j, f j x) (2 * r) μ ≤ C r * eLpNorm (sqfct f) (2 * r) μ  := by
-  sorry
+    eLpNorm (∑' j, f j) (2 * r) μ ≤ C r * eLpNorm (sqfct f) (2 * r) μ  :=
+  Codex.sqfct_estimate_of_type_iv_superorthogonal_finite μ hr hf hsq
 
 end Superorthogonal
 
