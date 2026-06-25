@@ -1,0 +1,4 @@
+interface:
+  display_name: "Autoformalize"
+  short_description: "Fill Lean sorries safely in Codex blocks"
+  default_prompt: "Use $autoformalize to fill the next Lean sorry in the target file."
