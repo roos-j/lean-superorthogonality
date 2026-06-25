@@ -1345,13 +1345,11 @@ private lemma pointwise_estimate_of_normalized (hk : 2 ≤ k)
       hNorm (rescaleFamily hk a) (rescaleFamily_summable hk a ha)
         (B_rescaleFamily_le_one hk a ha hB0)
 
-protected theorem pointwise_estimate (hk : 2 ≤ k) (a : Fin k → ι → ℂ)
+theorem pointwise_estimate (hk : 2 ≤ k) (a : Fin k → ι → ℂ)
   (ha : ∀ i, Summable (fun j ↦ ‖a i j‖)) : ‖Q a - ∏ i, s (a i)‖ₑ ≤
       (((k)! - 1 : ENNReal) * (B hk a) ^ 2 * (max (A hk a) (B hk a)) ^ (k - 2)) := by
   exact pointwise_estimate_of_normalized hk
     (fun b hb hBb ↦ pointwise_estimate_normalized hk b hb hBb) a ha
-
--- #print axioms pointwise_estimate
 
 end Codex
 

@@ -22,7 +22,6 @@ variable {k : ℕ}
 
 open MeasureTheory Nat Set
 
-open Codex (pointwise_estimate) in
 /-- Proposition 2 from arXiv:2212.08956.
 This is the key pointwise estimate used in the proof of the main theorem. -/
 theorem pointwise_estimate (hk : 2 ≤ k) (a : Fin k → ι → ℂ) (ha : ∀ i, Summable (fun j ↦ ‖a i j‖)) :

@@ -24,16 +24,24 @@ open scoped ComplexConjugate
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
-variable {ι : Type*} [Countable ι]
+variable {ι : Type*}
 
 variable {r : ℕ}
 
-open Codex (sqfct_estimate_of_type_iv_superorthogonal_finite) in
 /-- Theorem 1 of arXiv:2212.08956 for the special case of finite index sets. -/
 theorem sqfct_estimate_of_type_iv_superorthogonal_finite [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (∑' j, f j) (2 * r) μ ≤ C r * eLpNorm (sqfct f) (2 * r) μ  :=
   Codex.sqfct_estimate_of_type_iv_superorthogonal_finite μ hr hf hsq
+
+/-- Theorem 1 of arXiv:2212.08956 -/
+theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
+    [Fact (1 ≤ (2 * (r : ENNReal)))] (hr : 1 ≤ r)
+    {f : ι → Lp ℂ (2 * r) μ} (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
+    Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  := by
+  sorry
 
 end Superorthogonal
 

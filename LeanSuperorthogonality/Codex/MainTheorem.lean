@@ -439,8 +439,10 @@ private lemma lintegral_sum_norm_pow_le_pointwise_bound [Finite ι] {f : ι → 
           intro x
           simpa [R, P] using pointwise_bound_sqfct f hr x
 
+omit [Countable ι] in
 private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
-    (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
+    (hr : 1 ≤ r) (_hf : TypeIVSuperorthogonal μ f r)
+    (_hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (∑' j, f j) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
       ∫⁻ x, ‖(∑' j, f j) x‖ₑ ^ ((2 * r : ℕ) : ℝ) ∂μ := by
   letI := Fintype.ofFinite ι
@@ -451,6 +453,7 @@ private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
     eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (f := (∑' j, f j)) (p := (2 * r : NNReal))
       (by exact_mod_cast (by omega : 2 * r ≠ 0))
 
+omit [Countable ι] in
 private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -474,6 +477,7 @@ private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
               (ENNReal.ofReal (sqfct f x)) ^ ((2 * r : ℕ) : ℝ)
             rw [hbase]
 
+omit [Countable ι] in
 private lemma eLpNorm_tsum_pow_eq_lintegral_nat [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (∑' j, f j) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -485,6 +489,7 @@ private lemma eLpNorm_tsum_pow_eq_lintegral_nat [Finite ι] {f : ι → α → �
       ‖(∑' j, f j) x‖ₑ ^ (2 * r)
     exact ENNReal.rpow_natCast _ (2 * r)
 
+omit [Countable ι] in
 private lemma eLpNorm_sqfct_pow_eq_lintegral_nat [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -574,6 +579,7 @@ private lemma ennreal_rpow_two_mul_one_sub_inv (hr : 1 ≤ r) (x : ENNReal) :
     ring]
   exact ENNReal.rpow_natCast x (2 * r - 2)
 
+omit [Countable ι] in
 private lemma lintegral_pointwise_bound_le_split [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     (∫⁻ x, (((2 * r)! - 1 : ENNReal) * (ENNReal.ofReal (sqfct f x)) ^ 2 *
@@ -604,6 +610,7 @@ private lemma lintegral_pointwise_bound_le_split [Finite ι] {f : ι → α → 
           ∫⁻ x, S x ^ 2 * A x ^ (2 * r - 2) ∂μ) := by
           rw [lintegral_add_left' (hSae.pow_const (2 * r))]
 
+omit [Countable ι] in
 private lemma lintegral_mixed_le_lintegral_powers [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     (∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ 2 *
@@ -684,15 +691,15 @@ private lemma eLpNorm_tsum_power_le [Finite ι] {f : ι → α → ℂ}
 omit [MeasurableSpace α] [Countable ι] in
 private lemma C_sq_of_two_le (hr : 2 ≤ r) :
     C r ^ 2 = (2 : ENNReal) * (((2 * r)! - 1 : ENNReal)) := by
-  have hrne : r ≠ 1 := by omega
-  simp [C, hrne]
-  rw [mul_pow]
-  rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul]
-  rw [show ((2 : ℝ)⁻¹) * ((2 : ℕ) : ℝ) = 1 by norm_num]
-  rw [ENNReal.rpow_one]
-  rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul]
-  rw [show ((2 : ℝ)⁻¹) * ((2 : ℕ) : ℝ) = 1 by norm_num]
-  rw [ENNReal.rpow_one]
+  rw [C]
+  · rw [mul_pow]
+    rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul]
+    rw [show ((2 : ℝ)⁻¹) * ((2 : ℕ) : ℝ) = 1 by norm_num]
+    rw [ENNReal.rpow_one]
+    rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul]
+    rw [show ((2 : ℝ)⁻¹) * ((2 : ℕ) : ℝ) = 1 by norm_num]
+    rw [ENNReal.rpow_one]
+  · omega
 
 omit [MeasurableSpace α] [Countable ι] in
 private lemma one_le_two_mul_factorial_sub_one (hr : 2 ≤ r) :
@@ -735,7 +742,7 @@ private lemma ennreal_absorb_sqfct (hr : 2 ≤ r) {N M : ENNReal} (hNtop : N ≠
           calc
             M ^ 2 = (1 : ENNReal) * M ^ 2 := by rw [one_mul]
             _ ≤ ((2 : ENNReal) * K) * M ^ 2 := by
-              exact mul_le_mul_right' hcoef (M ^ 2)
+              exact _root_.mul_le_mul_left hcoef (M ^ 2)
         _ = (2 : ENNReal) * K * M ^ 2 := by rw [mul_assoc]
     · have hMN : M ≤ N := le_of_not_ge hNM
       have hNpos : N ≠ 0 := by
@@ -835,6 +842,14 @@ theorem sqfct_estimate_of_type_iv_superorthogonal_finite [Finite ι] {f : ι →
       (memLp_tsum_of_sqfct (μ := μ) hf hsq).eLpNorm_lt_top.ne
     exact ennreal_absorb_sqfct (r := r) hr2 hNtop
       (eLpNorm_tsum_power_le (μ := μ) hr hf hsq)
+
+theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
+    [Fact (1 ≤ (2 * (r : ENNReal)))] (hr : 1 ≤ r)
+    {f : ι → Lp ℂ (2 * r) μ} (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
+    Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  := by
+  sorry
 
 end Codex
 
