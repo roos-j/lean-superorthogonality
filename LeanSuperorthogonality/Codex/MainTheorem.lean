@@ -843,13 +843,401 @@ theorem sqfct_estimate_of_type_iv_superorthogonal_finite [Finite ι] {f : ι →
     exact ennreal_absorb_sqfct (r := r) hr2 hNtop
       (eLpNorm_tsum_power_le (μ := μ) hr hf hsq)
 
+omit [MeasurableSpace α] [Countable ι] in
+private lemma C_lt_top (r : ℕ) : C r < ⊤ := by
+  unfold C
+  split
+  · norm_num
+  · exact ENNReal.mul_lt_top (by finiteness) (by finiteness)
+
+omit [MeasurableSpace α] [Countable ι] in
+private lemma two_mul_natCast_ne_zero (hr : 1 ≤ r) :
+    (2 * (r : ENNReal)) ≠ 0 := by
+  norm_num
+  exact Nat.cast_ne_zero.mpr (_root_.ne_of_gt (Nat.succ_le_iff.mp hr))
+
+omit [MeasurableSpace α] [Countable ι] in
+private lemma two_mul_natCast_ne_top (r : ℕ) :
+    (2 * (r : ENNReal)) ≠ ⊤ :=
+  ENNReal.mul_ne_top ENNReal.ofNat_ne_top (ENNReal.natCast_ne_top r)
+
+private def sqtail (f : ι → α → ℂ) (s : Finset ι) (x : α) : ℝ :=
+  ((∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2) ^ (2 : ℝ)⁻¹)
+
+omit [MeasurableSpace α] [Countable ι] in
+private def finsetComplSubtypeEquiv (s : Finset ι) :
+    {j // j ∉ s} ≃ {j // j ∈ {k : ι | k ∉ s}} where
+  toFun i := ⟨i, by simpa only [Set.mem_setOf_eq] using i.2⟩
+  invFun i := ⟨i, by simpa only [Set.mem_setOf_eq] using i.2⟩
+  left_inv i := by ext; rfl
+  right_inv i := by ext; rfl
+
+omit [MeasurableSpace α] [Countable ι] in
+private lemma tsum_finset_compl_eq_indicator (s : Finset ι) (a : ι → ℝ) :
+    (∑' i : {j // j ∉ s}, a i) = ∑' i, ({j : ι | j ∉ s}.indicator a) i := by
+  rw [← tsum_subtype {j : ι | j ∉ s} a]
+  exact (finsetComplSubtypeEquiv (ι := ι) s).tsum_eq
+    (fun i : {j // j ∈ {k : ι | k ∉ s}} ↦ a i)
+
+private lemma aemeasurable_sqtail {f : ι → α → ℂ} (hf : ∀ i, Measurable (f i))
+    (s : Finset ι) : AEMeasurable (sqtail f s) μ := by
+  have hterm : ∀ i : {j // j ∉ s}, AEMeasurable (fun x ↦ ‖f i x‖ ^ 2) μ := by
+    intro i
+    exact ((hf i).norm.pow_const (2 : ℕ)).aemeasurable
+  exact (AEMeasurable.tsum hterm).pow_const _
+
+omit [MeasurableSpace α] [Countable ι] in
+private lemma sqtail_nonneg {f : ι → α → ℂ} (s : Finset ι) (x : α) :
+    0 ≤ sqtail f s x := by
+  unfold sqtail
+  exact Real.rpow_nonneg (tsum_nonneg fun i : {j // j ∉ s} ↦ sq_nonneg ‖f i x‖) _
+
+omit [MeasurableSpace α] [Countable ι] in
+private lemma sqfct_nonneg_of_summable {f : ι → α → ℂ} (x : α) :
+    0 ≤ sqfct f x := by
+  unfold sqfct
+  exact Real.rpow_nonneg (tsum_nonneg fun i ↦ sq_nonneg ‖f i x‖) _
+
+omit [Countable ι] in
+private lemma sqtail_le_sqfct_ae {f : ι → α → ℂ}
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) (s : Finset ι) :
+    ∀ᵐ x ∂μ, sqtail f s x ≤ sqfct f x := by
+  filter_upwards [hsum] with x hx
+  have htail_summable :
+      Summable fun i ↦ ({j : ι | j ∉ s}.indicator (fun j ↦ ‖f j x‖ ^ 2)) i := by
+    refine Summable.of_nonneg_of_le (fun i ↦ ?_) (fun i ↦ ?_) hx
+    · by_cases hi : i ∈ s <;> simp [hi]
+    · by_cases hi : i ∈ s <;> simp [hi]
+  have hle_sum :
+      (∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2) ≤
+        ∑' i, ‖f i x‖ ^ 2 := by
+    calc
+      (∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2)
+          = ∑' i, ({j : ι | j ∉ s}.indicator (fun j ↦ ‖f j x‖ ^ 2)) i := by
+            exact tsum_finset_compl_eq_indicator (s := s) (a := fun j ↦ ‖f j x‖ ^ 2)
+      _ ≤ ∑' i, ‖f i x‖ ^ 2 :=
+        htail_summable.tsum_le_tsum (fun i ↦ by by_cases hi : i ∈ s <;> simp [hi]) hx
+  unfold sqtail sqfct
+  exact Real.rpow_le_rpow (tsum_nonneg fun i : {j // j ∉ s} ↦ sq_nonneg ‖f i x‖)
+    hle_sum (by positivity)
+
+private lemma memLp_sqtail {f : ι → α → ℂ}
+    (hf : ∀ i, Measurable (f i))
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct f) (2 * r) μ) (s : Finset ι) :
+    MemLp (sqtail f s) (2 * r) μ := by
+  refine hsq.mono (aemeasurable_sqtail (μ := μ) hf s).aestronglyMeasurable ?_
+  exact (sqtail_le_sqfct_ae (μ := μ) hsum s).mono fun x hx ↦ by
+    simpa [Real.norm_of_nonneg (sqtail_nonneg s x),
+      Real.norm_of_nonneg (sqfct_nonneg_of_summable x)] using hx
+
+omit [Countable ι] in
+private lemma typeIV_restrict_finset {f : ι → α → ℂ} (hf : TypeIVSuperorthogonal μ f r)
+    (s : Finset ι) :
+    TypeIVSuperorthogonal μ (fun i : {j // j ∈ s} ↦ f i) r where
+  measurable j := hf.measurable j
+  integrable_cprod j hdist := by
+    have hdist' : all_distinct (2 * r) (fun i ↦ (j i : ι)) := by
+      intro a b hab hval
+      exact hdist a b hab (Subtype.ext hval)
+    simpa [cprod] using hf.integrable_cprod (fun i ↦ (j i : ι)) hdist'
+  superorthogonal j hdist := by
+    have hdist' : all_distinct (2 * r) (fun i ↦ (j i : ι)) := by
+      intro a b hab hval
+      exact hdist a b hab (Subtype.ext hval)
+    simpa [cprod] using hf.superorthogonal (fun i ↦ (j i : ι)) hdist'
+
+private lemma aemeasurable_sqfct_fintype {κ : Type*} [Fintype κ] {g : κ → α → ℂ}
+    (hg : ∀ i, Measurable (g i)) :
+    AEMeasurable (sqfct g) μ := by
+  have hsum : Measurable fun x ↦ (∑ i, ‖g i x‖ ^ 2 : ℝ) := by
+    exact Finset.measurable_fun_sum Finset.univ fun i _ ↦ (hg i).norm.pow_const (2 : ℕ)
+  refine ((hsum.pow_const ((2 : ℝ)⁻¹)).aemeasurable).congr ?_
+  exact Filter.Eventually.of_forall fun x ↦ by
+    rw [sqfct_fintype]
+
+omit [Countable ι] in
+private lemma sqfct_restrict_le_sqtail_ae {f : ι → α → ℂ}
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) {s t : Finset ι}
+    (hdisj : Disjoint t s) :
+    ∀ᵐ x ∂μ, sqfct (fun i : {j // j ∈ t} ↦ f i) x ≤ sqtail f s x := by
+  filter_upwards [hsum] with x hx
+  let a : ι → ℝ := fun i ↦ ‖f i x‖ ^ 2
+  let b : ι → ℝ := fun i ↦ ({j : ι | j ∉ s}.indicator a) i
+  have hb_nonneg : ∀ i, 0 ≤ b i := by
+    intro i
+    by_cases hi : i ∈ s <;> simp [b, a, hi]
+  have hb_le : ∀ i, b i ≤ a i := by
+    intro i
+    by_cases hi : i ∈ s <;> simp [b, a, hi]
+  have hb_summable : Summable b := Summable.of_nonneg_of_le hb_nonneg hb_le hx
+  have ht_sum_le :
+      (∑ i ∈ t, a i) ≤ ∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2 := by
+    have hsum_eq : (∑ i ∈ t, a i) = ∑ i ∈ t, b i := by
+      refine Finset.sum_congr rfl fun i hi ↦ ?_
+      have his : i ∉ s := by
+        exact fun hs ↦ (Finset.disjoint_left.mp hdisj) hi hs
+      simp [b, a, his]
+    calc
+      (∑ i ∈ t, a i) = ∑ i ∈ t, b i := hsum_eq
+      _ ≤ ∑' i, b i := hb_summable.sum_le_tsum t (fun i _ ↦ hb_nonneg i)
+      _ = ∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2 := by
+        simpa [b, a] using
+          (tsum_finset_compl_eq_indicator (ι := ι) s a).symm
+  have htsum :
+      (∑' i : {j // j ∈ t}, ‖f i x‖ ^ 2) = ∑ i ∈ t, a i := by
+    simpa [a] using (Finset.tsum_subtype t (fun i ↦ ‖f i x‖ ^ 2))
+  unfold sqfct sqtail
+  rw [htsum]
+  exact Real.rpow_le_rpow (Finset.sum_nonneg fun i _ ↦ sq_nonneg ‖f i x‖)
+    ht_sum_le (by positivity)
+
+omit [Countable ι] in
+private lemma eLpNorm_sqfct_restrict_le_sqtail {f : ι → α → ℂ}
+    (_hf : ∀ i, Measurable (f i))
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) {s t : Finset ι}
+    (hdisj : Disjoint t s) :
+    eLpNorm (sqfct (fun i : {j // j ∈ t} ↦ f i)) (2 * r) μ ≤
+      eLpNorm (sqtail f s) (2 * r) μ := by
+  letI : Fintype {j // j ∈ t} := Finset.fintypeCoeSort t
+  refine eLpNorm_mono_ae ?_
+  exact (sqfct_restrict_le_sqtail_ae (μ := μ) hsum hdisj).mono fun x hx ↦ by
+    simpa [Real.norm_of_nonneg (sqfct_nonneg_of_summable x),
+      Real.norm_of_nonneg (sqtail_nonneg s x)] using hx
+
+private lemma memLp_sqfct_restrict_of_sqtail {f : ι → α → ℂ}
+    (hf : ∀ i, Measurable (f i))
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct f) (2 * r) μ) {s t : Finset ι} (hdisj : Disjoint t s) :
+    MemLp (sqfct (fun i : {j // j ∈ t} ↦ f i)) (2 * r) μ := by
+  letI : Fintype {j // j ∈ t} := Finset.fintypeCoeSort t
+  refine (memLp_sqtail (μ := μ) hf hsum hsq s).mono
+    (aemeasurable_sqfct_fintype (μ := μ) (fun i : {j // j ∈ t} ↦ hf i)).aestronglyMeasurable ?_
+  exact (sqfct_restrict_le_sqtail_ae (μ := μ) hsum hdisj).mono fun x hx ↦ by
+    simpa [Real.norm_of_nonneg (sqfct_nonneg_of_summable x),
+      Real.norm_of_nonneg (sqtail_nonneg s x)] using hx
+
+private lemma finset_sum_bound_by_sqtail [Fact (1 ≤ (2 * (r : ENNReal)))]
+    (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
+    (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) {s t : Finset ι}
+    (hdisj : Disjoint t s) :
+    ENNReal.ofReal ‖∑ i ∈ t, f i‖ ≤
+      C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ := by
+  letI : Fintype {j // j ∈ t} := Finset.fintypeCoeSort t
+  letI : Finite {j // j ∈ t} := Finite.of_fintype _
+  let g : {j // j ∈ t} → α → ℂ := fun i ↦ f i
+  have hmem : MemLp (sqfct g) (2 * r) μ :=
+    memLp_sqfct_restrict_of_sqtail (μ := μ) (r := r) (f := fun i ↦ (f i : α → ℂ))
+      hf.measurable hsum hsq hdisj
+  have hfinite := sqfct_estimate_of_type_iv_superorthogonal_finite (μ := μ) (r := r) hr
+    (typeIV_restrict_finset (μ := μ) (r := r) hf t) hmem
+  have hsum_ae :
+      (⇑(∑ i ∈ t, f i) : α → ℂ) =ᵐ[μ] (∑' i, g i) := by
+    refine (Lp.coeFn_fun_finsetSum t f).trans ?_
+    exact Filter.Eventually.of_forall fun x ↦ by
+      rw [tsum_fintype]
+      rw [Finset.sum_apply]
+      change (∑ i ∈ t, f i x) = ∑ i : {j // j ∈ t}, f i x
+      exact (Finset.sum_coe_sort t (fun i ↦ f i x)).symm
+  calc
+    ENNReal.ofReal ‖∑ i ∈ t, f i‖ = eLpNorm (∑' i, g i) (2 * r) μ := by
+      rw [ofReal_norm, Lp.enorm_def]
+      exact eLpNorm_congr_ae hsum_ae
+    _ ≤ C r * eLpNorm (sqfct g) (2 * r) μ := hfinite
+    _ ≤ C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ := by
+      gcongr
+      exact eLpNorm_sqfct_restrict_le_sqtail (μ := μ) (r := r)
+        (f := fun i ↦ (f i : α → ℂ)) hf.measurable hsum hdisj
+
+private lemma finset_sum_norm_le_sqtail_toReal [Fact (1 ≤ (2 * (r : ENNReal)))]
+    (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
+    (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) {s t : Finset ι}
+    (hdisj : Disjoint t s) :
+    ‖∑ i ∈ t, f i‖ ≤
+      (C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ).toReal := by
+  have hbound := finset_sum_bound_by_sqtail (μ := μ) (r := r) hr hf hsum hsq hdisj
+  have htail_ne_top :
+      eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ ≠ ⊤ :=
+    (memLp_sqtail (μ := μ) (r := r) (f := fun i ↦ (f i : α → ℂ))
+      hf.measurable hsum hsq s).eLpNorm_lt_top.ne
+  have hprod_ne_top :
+      C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ ≠ ⊤ :=
+    ENNReal.mul_ne_top (ne_of_lt (C_lt_top r)) htail_ne_top
+  exact (ENNReal.ofReal_le_iff_le_toReal hprod_ne_top).1 hbound
+
+private lemma finset_sum_norm_le_sqfct_toReal [Fact (1 ≤ (2 * (r : ENNReal)))]
+    (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
+    (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) (t : Finset ι) :
+    ‖∑ i ∈ t, f i‖ ≤
+      (C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ).toReal := by
+  have hbound := finset_sum_bound_by_sqtail (μ := μ) (r := r) hr hf hsum hsq
+    (s := ∅) (t := t) (Finset.disjoint_empty_right t)
+  have htail_le :
+      eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) ∅) (2 * r) μ ≤
+        eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ := by
+    refine eLpNorm_mono_ae ?_
+    exact (sqtail_le_sqfct_ae (μ := μ)
+      (f := fun i ↦ (f i : α → ℂ)) hsum ∅).mono fun x hx ↦ by
+        simpa [Real.norm_of_nonneg (sqtail_nonneg ∅ x),
+          Real.norm_of_nonneg (sqfct_nonneg_of_summable x)] using hx
+  have hbound_full :
+      ENNReal.ofReal ‖∑ i ∈ t, f i‖ ≤
+        C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ := by
+    calc
+      ENNReal.ofReal ‖∑ i ∈ t, f i‖
+          ≤ C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) ∅) (2 * r) μ := hbound
+      _ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ := by
+        gcongr
+  have hprod_ne_top :
+      C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ ≠ ⊤ :=
+    ENNReal.mul_ne_top (ne_of_lt (C_lt_top r)) hsq.eLpNorm_lt_top.ne
+  exact (ENNReal.ofReal_le_iff_le_toReal hprod_ne_top).1 hbound_full
+
+private lemma tendsto_eLpNorm_sqtail_atTop_zero (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
+    (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
+    (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
+    (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
+    Filter.Tendsto (fun s : Finset ι ↦ eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ)
+      Filter.atTop (nhds 0) := by
+  let p : ENNReal := 2 * (r : ENNReal)
+  have hp0 : p ≠ 0 := two_mul_natCast_ne_zero hr
+  have hptop : p ≠ ⊤ := two_mul_natCast_ne_top r
+  have hp_pos : 0 < p.toReal := ENNReal.toReal_pos hp0 hptop
+  have h_int_tendsto :
+      Filter.Tendsto
+        (fun s : Finset ι ↦
+          ∫⁻ x, ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ ^ p.toReal ∂μ)
+        Filter.atTop (nhds 0) := by
+    have hfin : (∫⁻ x, ‖sqfct (fun i ↦ (f i : α → ℂ)) x‖ₑ ^ p.toReal ∂μ) ≠ ⊤ := by
+      exact (lintegral_rpow_enorm_lt_top_of_eLpNorm_lt_top hp0 hptop hsq.2).ne
+    have hlim : ∀ᵐ x ∂μ,
+        Filter.Tendsto
+          (fun s : Finset ι ↦
+            ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ ^ p.toReal)
+          Filter.atTop (nhds 0) := by
+      filter_upwards [hsum] with x hx
+      have htail_sum :
+          Filter.Tendsto
+            (fun s : Finset ι ↦
+              ∑' i : {j // j ∉ s}, ‖(f i : α → ℂ) x‖ ^ 2)
+            Filter.atTop (nhds 0) := by
+        exact tendsto_tsum_compl_atTop_zero (fun i : ι ↦ ‖(f i : α → ℂ) x‖ ^ 2)
+      have htail :
+          Filter.Tendsto (fun s : Finset ι ↦ sqtail (fun i ↦ (f i : α → ℂ)) s x)
+            Filter.atTop (nhds 0) := by
+        have hpow := (Real.continuous_rpow_const (by positivity : 0 ≤ (2 : ℝ)⁻¹)).tendsto 0
+        simpa [sqtail, Function.comp_def, Real.zero_rpow (by positivity : (2 : ℝ)⁻¹ ≠ 0)]
+          using hpow.comp htail_sum
+      have henorm :
+          Filter.Tendsto (fun s : Finset ι ↦ ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ)
+            Filter.atTop (nhds (0 : ENNReal)) := by
+        simpa [Function.comp_def] using (continuous_enorm.tendsto (0 : ℝ)).comp htail
+      have hpow :
+          Filter.Tendsto (fun y : ENNReal ↦ y ^ p.toReal) (nhds (0 : ENNReal)) (nhds 0) := by
+        simpa [ENNReal.zero_rpow_of_pos hp_pos] using
+          (ENNReal.continuous_rpow_const.tendsto (0 : ENNReal) :
+            Filter.Tendsto (fun y : ENNReal ↦ y ^ p.toReal) (nhds 0)
+              (nhds ((0 : ENNReal) ^ p.toReal)))
+      simpa [Function.comp_def] using hpow.comp henorm
+    haveI : Countable (Finset ι) := inferInstance
+    have hdct := tendsto_lintegral_filter_of_dominated_convergence'
+      (μ := μ)
+      (l := (Filter.atTop : Filter (Finset ι)))
+      (F := fun s x ↦ ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ ^ p.toReal)
+      (f := fun _x ↦ 0)
+      (bound := fun x ↦ ‖sqfct (fun i ↦ (f i : α → ℂ)) x‖ₑ ^ p.toReal)
+      (by
+        exact Filter.Eventually.of_forall fun s ↦
+          ((aemeasurable_sqtail (μ := μ) hf.measurable s).enorm.pow_const _))
+      (by
+        exact Filter.Eventually.of_forall fun s ↦
+          (sqtail_le_sqfct_ae (μ := μ)
+            (f := fun i ↦ (f i : α → ℂ)) hsum s).mono fun x hx ↦
+              ENNReal.rpow_le_rpow
+                (by simpa [enorm_le_iff_norm_le, Real.norm_of_nonneg (sqtail_nonneg s x),
+                  Real.norm_of_nonneg (sqfct_nonneg_of_summable x)] using hx)
+                (by positivity))
+      hfin hlim
+    simpa using hdct
+  have hnorm :
+      Filter.Tendsto
+        (fun s : Finset ι ↦
+          (∫⁻ x, ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ ^ p.toReal ∂μ) ^
+            (1 / p.toReal))
+        Filter.atTop (nhds 0) := by
+    have hpow :
+        Filter.Tendsto (fun y : ENNReal ↦ y ^ (1 / p.toReal))
+          (nhds (0 : ENNReal)) (nhds 0) := by
+      have hinv_pos : 0 < p.toReal⁻¹ := inv_pos.mpr hp_pos
+      simpa [one_div, ENNReal.zero_rpow_of_pos hinv_pos] using
+        (ENNReal.continuous_rpow_const.tendsto (0 : ENNReal) :
+          Filter.Tendsto (fun y : ENNReal ↦ y ^ p.toReal⁻¹) (nhds 0)
+            (nhds ((0 : ENNReal) ^ p.toReal⁻¹)))
+    simpa [Function.comp_def] using hpow.comp h_int_tendsto
+  have hpow0 : (0 : ENNReal) ^ (1 / p.toReal) = 0 :=
+    by simpa [one_div] using ENNReal.zero_rpow_of_pos (inv_pos.mpr hp_pos)
+  simpa [p, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hptop, hpow0] using hnorm
+
+omit [Countable ι] in
 theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
     [Fact (1 ≤ (2 * (r : ENNReal)))] (hr : 1 ≤ r)
     {f : ι → Lp ℂ (2 * r) μ} (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
     Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  := by
-  sorry
+  have htail_tendsto :=
+    tendsto_eLpNorm_sqtail_atTop_zero (μ := μ) (r := r) hr hf hsum hsq
+  have hSummable : Summable f := by
+    refine summable_iff_vanishing_norm.mpr ?_
+    intro ε hε
+    have hprod :
+        Filter.Tendsto
+          (fun s : Finset ι ↦
+            C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ)
+          Filter.atTop (nhds 0) := by
+      simpa [mul_zero] using
+        ENNReal.Tendsto.const_mul htail_tendsto (Or.inr (ne_of_lt (C_lt_top r)))
+    have hreal :
+        Filter.Tendsto
+          (fun s : Finset ι ↦
+            (C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ).toReal)
+          Filter.atTop (nhds (0 : ℝ)) := by
+      exact (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hprod
+    have hsmall_eventually :
+        ∀ᶠ s : Finset ι in Filter.atTop,
+          (C r * eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) s) (2 * r) μ).toReal < ε :=
+      hreal.eventually (gt_mem_nhds hε)
+    rcases Filter.eventually_atTop.1 hsmall_eventually with ⟨s, hs⟩
+    refine ⟨s, fun t hdisj ↦ ?_⟩
+    exact lt_of_le_of_lt
+      (finset_sum_norm_le_sqtail_toReal (μ := μ) (r := r) hr hf hsum hsq hdisj)
+      (hs s le_rfl)
+  refine ⟨hSummable, ?_⟩
+  let B : ENNReal := C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ
+  have hB_ne_top : B ≠ ⊤ :=
+    ENNReal.mul_ne_top (ne_of_lt (C_lt_top r)) hsq.eLpNorm_lt_top.ne
+  have hpartial_bound : ∀ t : Finset ι, ‖∑ i ∈ t, f i‖ ≤ B.toReal := by
+    intro t
+    simpa [B] using
+      finset_sum_norm_le_sqfct_toReal (μ := μ) (r := r) hr hf hsum hsq t
+  have hsum_tendsto :
+      Filter.Tendsto (fun s : Finset ι ↦ ∑ i ∈ s, f i)
+        Filter.atTop (nhds (∑' j, f j)) := by
+    simpa [HasSum] using hSummable.hasSum
+  have hnorm_tendsto :
+      Filter.Tendsto (fun s : Finset ι ↦ ‖∑ i ∈ s, f i‖)
+        Filter.atTop (nhds ‖∑' j, f j‖) :=
+    hsum_tendsto.norm
+  have hnorm_le : ‖∑' j, f j‖ ≤ B.toReal :=
+    le_of_tendsto_of_tendsto' hnorm_tendsto tendsto_const_nhds hpartial_bound
+  change ENNReal.ofReal ‖∑' j, f j‖ ≤ B
+  exact (ENNReal.ofReal_le_iff_le_toReal hB_ne_top).2 hnorm_le
 
 end Codex
 
