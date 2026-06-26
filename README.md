@@ -28,7 +28,7 @@ where $C_1=1$ and $C_r = 2^{1/2} ((2r)! - 1)^{1/2}$ for $r\ge 2$.
 
 There are some limitations on the extent to which the mathematically conventional formulation can match the actual Lean implementation, which must follow the rules of Lean's type theory.
 
-* Mathematically, elements $f$ of $L^{2r}(d\mu)$ are equivalence classes of functions with respect to $\mu$-a.e. equality. Since the notions of type IV superorthogonality and square-functions are defined for functions rather than equivalence classes, one must pass to a representative of $f$. In Lean this is achieved by a type coercion, which is often implicit, similarly to mathematical convention.
+* Mathematically, elements $f$ of $L^{2r}(d\mu)$ are equivalence classes of functions with respect to $\mu$-a.e. equality. Since the notions of type IV superorthogonality and square-functions are formalized for functions rather than equivalence classes, one must pass to a representative of $f$. In Lean this is achieved by a type coercion, which is often implicit, similarly to mathematical convention.
 
 * The two occurrences of $L^{2r}$ norms on both sides of the inequality use two different (mathematically equivalent) implementations of $L^p$ norms in Lean. On the left-hand side we use the norm on the normed space $L^{2r}(d\mu)$ which takes equivalence classes, and on the right-hand side we use the $L^{2r}$ norm of the square-function interpreted as a function. These choices are to some extent arbitrary and other formulations are possible.
 
