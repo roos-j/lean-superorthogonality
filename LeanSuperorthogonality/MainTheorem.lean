@@ -9,8 +9,6 @@ public import LeanSuperorthogonality.Defs
 
 import LeanSuperorthogonality.Codex.MainTheorem
 
--- import LeanSuperorthogonality.Codex.PointwiseEstimate
-
 /-!
 Formalizing arXiv:2212.08956
 -/
@@ -41,7 +39,7 @@ theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
     Summable f ∧ ENNReal.ofReal ‖∑' j, f j‖ ≤ C r * eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ  :=
-  Codex.sqfct_estimate_of_type_iv_superorthogonal hr hf hsum hsq
+  Codex.sqfct_estimate_of_type_iv_superorthogonal μ hr hf hsum hsq
 
 end Superorthogonal
 
