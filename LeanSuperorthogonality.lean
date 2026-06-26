@@ -1,8 +1,10 @@
+module
+
 import LeanSuperorthogonality.Defs
 import LeanSuperorthogonality.PointwiseEstimate
 import LeanSuperorthogonality.MainTheorem
 
-open Superorthogonality
+open Superorthogonal
 
 #print axioms pointwise_estimate
 #print axioms sqfct_estimate_of_type_iv_superorthogonal
