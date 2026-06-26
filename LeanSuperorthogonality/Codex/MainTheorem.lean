@@ -19,7 +19,7 @@ open MeasureTheory Nat Set
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
-variable {ι : Type*} [Countable ι]
+variable {ι : Type*}
 
 variable {r : ℕ}
 
@@ -29,7 +29,7 @@ private abbrev pointwiseFamily (f : ι → α → ℂ) (r : ℕ) (x : α) :
     Fin (2 * r) → ι → ℂ :=
   fun i j ↦ if i < r then f j x else star (f j x)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma summable_norm_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (r : ℕ) (x : α) :
     ∀ i : Fin (2 * r), Summable fun j : ι ↦ ‖pointwiseFamily f r x i j‖ := by
   letI := Fintype.ofFinite ι
@@ -46,27 +46,33 @@ private lemma pointwise_estimate_conjugated [Finite ι] (f : ι → α → ℂ)
   exact pointwise_estimate (k := 2 * r) (by omega) (pointwiseFamily f r x)
     (summable_norm_pointwiseFamily f r x)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma tsum_fintype_apply [Fintype ι] (f : ι → α → ℂ) (x : α) :
     (∑' j, f j) x = ∑ j : ι, f j x := by
   simp [tsum_fintype]
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma s_pointwiseFamily_eq [Fintype ι] (f : ι → α → ℂ) (r : ℕ) (x : α)
+omit [MeasurableSpace α] in
+private lemma s_pointwiseFamily_eq [Finite ι] (f : ι → α → ℂ) (r : ℕ) (x : α)
     (i : Fin (2 * r)) :
     ‖s (pointwiseFamily f r x i)‖ = ‖(∑' j, f j) x‖ := by
+  letI := Fintype.ofFinite ι
   by_cases hi : i < r
   · simp [s, pointwiseFamily, hi, tsum_fintype_apply]
   · have hstar :
         (∑ j : ι, (starRingEnd ℂ) (f j x)) = (starRingEnd ℂ) (∑ j : ι, f j x) := by
       exact (map_sum (starRingEnd ℂ) (fun j : ι ↦ f j x) Finset.univ).symm
-    simp [s, pointwiseFamily, hi, tsum_fintype_apply]
-    rw [hstar]
-    simpa using norm_star (∑ j : ι, f j x)
+    have hs :
+        s (pointwiseFamily f r x i) = (starRingEnd ℂ) (∑ j : ι, f j x) := by
+      rw [s, tsum_fintype]
+      simp only [pointwiseFamily, hi, ↓reduceIte]
+      exact hstar
+    rw [hs]
+    simpa [tsum_fintype_apply] using norm_star (∑ j : ι, f j x)
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma A_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) (hr : 1 ≤ r) (x : α) :
+omit [MeasurableSpace α] in
+private lemma A_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (hr : 1 ≤ r) (x : α) :
     A (k := 2 * r) (by omega) (pointwiseFamily f r x) = ‖(∑' j, f j) x‖ₑ := by
+  letI := Fintype.ofFinite ι
   classical
   unfold A
   let T : Finset ℝ := Finset.univ.image fun i ↦ ‖s (pointwiseFamily f r x i)‖
@@ -89,7 +95,6 @@ private lemma A_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) (hr : 1 ≤
           exact Finset.mem_image.mpr ⟨i0, Finset.mem_univ i0, rfl⟩
         exact Finset.le_max' T _ hmem
 
-omit [Countable ι] in
 private lemma eLpNorm_count_two_fintype [MeasurableSpace ι] [MeasurableSingletonClass ι]
     [Fintype ι] (a : ι → ℂ) :
     eLpNorm a 2 (Measure.count : Measure ι) =
@@ -116,14 +121,15 @@ private lemma eLpNorm_count_two_fintype [MeasurableSpace ι] [MeasurableSingleto
   rw [show 1 / (2 : ENNReal).toReal = (2 : ℝ)⁻¹ by norm_num]
   rw [ENNReal.ofReal_rpow_of_nonneg hsum_nonneg (by norm_num : 0 ≤ (2 : ℝ)⁻¹)]
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma sqfct_fintype [Fintype ι] (f : ι → α → ℂ) (x : α) :
     sqfct f x = ((∑ j : ι, ‖f j x‖ ^ 2) ^ (2 : ℝ)⁻¹) := by
   simp [sqfct, tsum_fintype]
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma B_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) (hr : 1 ≤ r) (x : α) :
+omit [MeasurableSpace α] in
+private lemma B_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (hr : 1 ≤ r) (x : α) :
     B (k := 2 * r) (by omega) (pointwiseFamily f r x) = ENNReal.ofReal (sqfct f x) := by
+  letI := Fintype.ofFinite ι
   letI : MeasurableSpace ι := ⊤
   letI : MeasureSpace ι := { volume := Measure.count }
   haveI : MeasurableSingletonClass ι := ⟨fun _ ↦ trivial⟩
@@ -165,10 +171,11 @@ private lemma B_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) (hr : 1 ≤
           exact Finset.mem_image.mpr ⟨i0, Finset.mem_univ i0, rfl⟩
         exact Finset.le_max' T _ hmem
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma enorm_prod_s_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) (r : ℕ) (x : α) :
+omit [MeasurableSpace α] in
+private lemma enorm_prod_s_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (r : ℕ) (x : α) :
     ‖∏ i : Fin (2 * r), s (pointwiseFamily f r x i)‖ₑ =
       ‖(∑' j, f j) x‖ₑ ^ (2 * r) := by
+  letI := Fintype.ofFinite ι
   rw [← ofReal_norm, norm_prod]
   have hprod :
       (∏ i : Fin (2 * r), ‖s (pointwiseFamily f r x i)‖) =
@@ -177,11 +184,12 @@ private lemma enorm_prod_s_pointwiseFamily [Fintype ι] (f : ι → α → ℂ) 
     simp
   rw [hprod, ENNReal.ofReal_pow (norm_nonneg _), ofReal_norm]
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma s_pointwiseFamily_eq_ite [Fintype ι] (f : ι → α → ℂ) (r : ℕ) (x : α)
+omit [MeasurableSpace α] in
+private lemma s_pointwiseFamily_eq_ite [Finite ι] (f : ι → α → ℂ) (r : ℕ) (x : α)
     (i : Fin (2 * r)) :
     s (pointwiseFamily f r x i) =
       if i < r then (∑' j, f j) x else star ((∑' j, f j) x) := by
+  letI := Fintype.ofFinite ι
   by_cases hi : i < r
   · simp [s, pointwiseFamily, hi, tsum_fintype_apply]
   · have hstar :
@@ -196,11 +204,12 @@ private lemma s_pointwiseFamily_eq_ite [Fintype ι] (f : ι → α → ℂ) (r :
         rw [tsum_fintype_apply]
         rfl
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma prod_s_pointwiseFamily_eq_ofReal_norm_pow [Fintype ι] (f : ι → α → ℂ)
+omit [MeasurableSpace α] in
+private lemma prod_s_pointwiseFamily_eq_ofReal_norm_pow [Finite ι] (f : ι → α → ℂ)
     (r : ℕ) (x : α) :
     (∏ i : Fin (2 * r), s (pointwiseFamily f r x i)) =
       (‖(∑' j, f j) x‖ ^ (2 * r) : ℂ) := by
+  letI := Fintype.ofFinite ι
   let z : ℂ := (∑' j, f j) x
   have hsplit :
       (∏ i : Fin (2 * r), s (pointwiseFamily f r x i)) =
@@ -250,7 +259,7 @@ private lemma pointwise_bound_sqfct [Finite ι] (f : ι → α → ℂ)
   simpa [A_pointwiseFamily f hr x, B_pointwiseFamily f hr x] using
     pointwise_estimate_conjugated f hr x
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma Q_pointwiseFamily_eq_finsum [Fintype ι] (f : ι → α → ℂ) (r : ℕ) (x : α) :
     Q (pointwiseFamily f r x) =
       ∑ j : Fin (2 * r) → ι,
@@ -258,7 +267,6 @@ private lemma Q_pointwiseFamily_eq_finsum [Fintype ι] (f : ι → α → ℂ) (
   classical
   rw [Q, tsum_fintype]
 
-omit [Countable ι] in
 private lemma integrable_Q_summand {f : ι → α → ℂ} (hf : TypeIVSuperorthogonal μ f r)
     (j : Fin (2 * r) → ι) :
     Integrable (fun x ↦ indicator (set_all_distinct (2 * r)) (fun j ↦ cprod f j x) j) μ := by
@@ -267,7 +275,6 @@ private lemma integrable_Q_summand {f : ι → α → ℂ} (hf : TypeIVSuperorth
   · simpa [Set.indicator, hdist, set_all_distinct] using hf.integrable_cprod j hdist
   · simp [hdist]
 
-omit [Countable ι] in
 private lemma integral_Q_pointwiseFamily_eq_zero [Finite ι] {f : ι → α → ℂ}
     (hf : TypeIVSuperorthogonal μ f r) :
     ∫ x, Q (pointwiseFamily f r x) ∂μ = 0 := by
@@ -291,7 +298,6 @@ private lemma integral_Q_pointwiseFamily_eq_zero [Finite ι] {f : ι → α → 
   · intro j hj
     exact integrable_Q_summand (μ := μ) hf j
 
-omit [Countable ι] in
 private lemma integrable_Q_pointwiseFamily [Finite ι] {f : ι → α → ℂ}
     (hf : TypeIVSuperorthogonal μ f r) :
     Integrable (fun x ↦ Q (pointwiseFamily f r x)) μ := by
@@ -304,15 +310,17 @@ private lemma integrable_Q_pointwiseFamily [Finite ι] {f : ι → α → ℂ}
     exact Q_pointwiseFamily_eq_finsum f r x]
   exact integrable_finsetSum Finset.univ fun j _ ↦ integrable_Q_summand (μ := μ) hf j
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma sqfct_nonneg [Fintype ι] (f : ι → α → ℂ) (x : α) :
+omit [MeasurableSpace α] in
+private lemma sqfct_nonneg [Finite ι] (f : ι → α → ℂ) (x : α) :
     0 ≤ sqfct f x := by
+  letI := Fintype.ofFinite ι
   rw [sqfct_fintype]
   positivity
 
-omit [MeasurableSpace α] [Countable ι] in
-private lemma norm_le_sqfct [Fintype ι] (f : ι → α → ℂ) (j : ι) (x : α) :
+omit [MeasurableSpace α] in
+private lemma norm_le_sqfct [Finite ι] (f : ι → α → ℂ) (j : ι) (x : α) :
     ‖f j x‖ ≤ sqfct f x := by
+  letI := Fintype.ofFinite ι
   rw [sqfct_fintype]
   have hsum_nonneg : 0 ≤ ∑ k : ι, ‖f k x‖ ^ 2 := by
     exact Finset.sum_nonneg fun k _ ↦ sq_nonneg ‖f k x‖
@@ -320,7 +328,6 @@ private lemma norm_le_sqfct [Fintype ι] (f : ι → α → ℂ) (j : ι) (x : �
   rw [Real.le_rpow_inv_iff_of_pos (norm_nonneg _) hsum_nonneg (by norm_num : (0 : ℝ) < 2)]
   simpa using Finset.single_le_sum (fun k _ ↦ sq_nonneg ‖f k x‖) (Finset.mem_univ j)
 
-omit [Countable ι] in
 private lemma aestronglyMeasurable_tsum_finite [Finite ι] {f : ι → α → ℂ}
     (hf : TypeIVSuperorthogonal μ f r) :
     AEStronglyMeasurable (∑' j, f j) μ := by
@@ -330,7 +337,6 @@ private lemma aestronglyMeasurable_tsum_finite [Finite ι] {f : ι → α → �
     simpa only [Finset.sum_apply] using tsum_fintype_apply f x]
   exact Finset.aestronglyMeasurable_sum _ fun j _ ↦ (hf.measurable j).aestronglyMeasurable
 
-omit [Countable ι] in
 private lemma memLp_component_of_sqfct [Finite ι] {f : ι → α → ℂ}
     (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) (j : ι) :
     MemLp (f j) (2 * r) μ := by
@@ -339,7 +345,6 @@ private lemma memLp_component_of_sqfct [Finite ι] {f : ι → α → ℂ}
     (Filter.Eventually.of_forall fun x ↦ by
       simpa [Real.norm_of_nonneg (sqfct_nonneg f x)] using norm_le_sqfct f j x)
 
-omit [Countable ι] in
 private lemma memLp_tsum_of_sqfct [Finite ι] {f : ι → α → ℂ}
     (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     MemLp (∑' j, f j) (2 * r) μ := by
@@ -349,7 +354,6 @@ private lemma memLp_tsum_of_sqfct [Finite ι] {f : ι → α → ℂ}
     simpa only [Finset.sum_apply] using tsum_fintype_apply f x]
   exact memLp_finsetSum' Finset.univ fun j _ ↦ memLp_component_of_sqfct (μ := μ) hf hsq j
 
-omit [Countable ι] in
 private lemma integrable_prod_s_pointwiseFamily [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     Integrable (fun x ↦ ∏ i : Fin (2 * r), s (pointwiseFamily f r x i)) μ := by
@@ -363,7 +367,6 @@ private lemma integrable_prod_s_pointwiseFamily [Finite ι] {f : ι → α → �
   simpa [Complex.ofReal_pow] using
     Integrable.ofReal (𝕜 := ℂ) (hF.integrable_norm_pow (by omega : 2 * r ≠ 0))
 
-omit [Countable ι] in
 private lemma enorm_integral_prod_s_pointwiseFamily [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     ‖∫ x, (∏ i : Fin (2 * r), s (pointwiseFamily f r x i)) ∂μ‖ₑ =
@@ -439,7 +442,6 @@ private lemma lintegral_sum_norm_pow_le_pointwise_bound [Finite ι] {f : ι → 
           intro x
           simpa [R, P] using pointwise_bound_sqfct f hr x
 
-omit [Countable ι] in
 private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (_hf : TypeIVSuperorthogonal μ f r)
     (_hsq : MemLp (sqfct f) (2 * r) μ) :
@@ -453,7 +455,6 @@ private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
     eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (f := (∑' j, f j)) (p := (2 * r : NNReal))
       (by exact_mod_cast (by omega : 2 * r ≠ 0))
 
-omit [Countable ι] in
 private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -477,7 +478,6 @@ private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
               (ENNReal.ofReal (sqfct f x)) ^ ((2 * r : ℕ) : ℝ)
             rw [hbase]
 
-omit [Countable ι] in
 private lemma eLpNorm_tsum_pow_eq_lintegral_nat [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (∑' j, f j) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -489,7 +489,6 @@ private lemma eLpNorm_tsum_pow_eq_lintegral_nat [Finite ι] {f : ι → α → �
       ‖(∑' j, f j) x‖ₑ ^ (2 * r)
     exact ENNReal.rpow_natCast _ (2 * r)
 
-omit [Countable ι] in
 private lemma eLpNorm_sqfct_pow_eq_lintegral_nat [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
@@ -501,7 +500,7 @@ private lemma eLpNorm_sqfct_pow_eq_lintegral_nat [Finite ι] {f : ι → α → 
       (ENNReal.ofReal (sqfct f x)) ^ (2 * r)
     exact ENNReal.rpow_natCast _ (2 * r)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_sq_mul_max_pow_le (hr : 1 ≤ r) (a b K : ENNReal) :
     K * b ^ 2 * (max a b) ^ (2 * r - 2) ≤
       K * (b ^ (2 * r) + b ^ 2 * a ^ (2 * r - 2)) := by
@@ -525,7 +524,7 @@ private lemma ennreal_sq_mul_max_pow_le (hr : 1 ≤ r) (a b K : ENNReal) :
         exact (le_add_self : b ^ 2 * a ^ (2 * r - 2) ≤
           b ^ (2 * r) + b ^ 2 * a ^ (2 * r - 2))
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_pow_two_mul_inv (hr : 1 ≤ r) (x : ENNReal) :
     (x ^ (2 * r)) ^ (1 / (r : ℝ)) = x ^ 2 := by
   rw [← ENNReal.rpow_natCast]
@@ -537,7 +536,7 @@ private lemma ennreal_pow_two_mul_inv (hr : 1 ≤ r) (x : ENNReal) :
     norm_num]
   exact ENNReal.rpow_natCast x 2
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_pow_two_mul_one_sub_inv (hr : 1 ≤ r) (x : ENNReal) :
     (x ^ (2 * r)) ^ (1 - 1 / (r : ℝ)) = x ^ (2 * r - 2) := by
   rw [← ENNReal.rpow_natCast]
@@ -553,7 +552,7 @@ private lemma ennreal_pow_two_mul_one_sub_inv (hr : 1 ≤ r) (x : ENNReal) :
     ring]
   exact ENNReal.rpow_natCast x (2 * r - 2)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_rpow_two_mul_inv (hr : 1 ≤ r) (x : ENNReal) :
     (x ^ ((2 * r : ℕ) : ℝ)) ^ (1 / (r : ℝ)) = x ^ 2 := by
   rw [← ENNReal.rpow_mul]
@@ -564,7 +563,7 @@ private lemma ennreal_rpow_two_mul_inv (hr : 1 ≤ r) (x : ENNReal) :
     norm_num]
   exact ENNReal.rpow_natCast x 2
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_rpow_two_mul_one_sub_inv (hr : 1 ≤ r) (x : ENNReal) :
     (x ^ ((2 * r : ℕ) : ℝ)) ^ (1 - 1 / (r : ℝ)) = x ^ (2 * r - 2) := by
   rw [← ENNReal.rpow_mul]
@@ -579,7 +578,6 @@ private lemma ennreal_rpow_two_mul_one_sub_inv (hr : 1 ≤ r) (x : ENNReal) :
     ring]
   exact ENNReal.rpow_natCast x (2 * r - 2)
 
-omit [Countable ι] in
 private lemma lintegral_pointwise_bound_le_split [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     (∫⁻ x, (((2 * r)! - 1 : ENNReal) * (ENNReal.ofReal (sqfct f x)) ^ 2 *
@@ -610,7 +608,6 @@ private lemma lintegral_pointwise_bound_le_split [Finite ι] {f : ι → α → 
           ∫⁻ x, S x ^ 2 * A x ^ (2 * r - 2) ∂μ) := by
           rw [lintegral_add_left' (hSae.pow_const (2 * r))]
 
-omit [Countable ι] in
 private lemma lintegral_mixed_le_lintegral_powers [Finite ι] {f : ι → α → ℂ}
     (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     (∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ 2 *
@@ -688,7 +685,7 @@ private lemma eLpNorm_tsum_power_le [Finite ι] {f : ι → α → ℂ}
           gcongr
           · rw [← eLpNorm_sqfct_pow_eq_lintegral_nat (μ := μ) (f := f) hr]
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma C_sq_of_two_le (hr : 2 ≤ r) :
     C r ^ 2 = (2 : ENNReal) * (((2 * r)! - 1 : ENNReal)) := by
   rw [C]
@@ -701,7 +698,7 @@ private lemma C_sq_of_two_le (hr : 2 ≤ r) :
     rw [ENNReal.rpow_one]
   · omega
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma one_le_two_mul_factorial_sub_one (hr : 2 ≤ r) :
     (1 : ENNReal) ≤ (2 : ENNReal) * (((2 * r)! - 1 : ENNReal)) := by
   have hnat : 1 ≤ (2 * r)! - 1 := by
@@ -720,7 +717,7 @@ private lemma one_le_two_mul_factorial_sub_one (hr : 2 ≤ r) :
         norm_num
       simpa using hmul
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma ennreal_absorb_sqfct (hr : 2 ≤ r) {N M : ENNReal} (hNtop : N ≠ ⊤)
     (hpow : N ^ ((2 * r : ℕ) : ℝ) ≤
       (((2 * r)! - 1 : ENNReal) *
@@ -843,20 +840,20 @@ theorem sqfct_estimate_of_type_iv_superorthogonal_finite [Finite ι] {f : ι →
     exact ennreal_absorb_sqfct (r := r) hr2 hNtop
       (eLpNorm_tsum_power_le (μ := μ) hr hf hsq)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma C_lt_top (r : ℕ) : C r < ⊤ := by
   unfold C
   split
   · norm_num
   · exact ENNReal.mul_lt_top (by finiteness) (by finiteness)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma two_mul_natCast_ne_zero (hr : 1 ≤ r) :
     (2 * (r : ENNReal)) ≠ 0 := by
   norm_num
   exact Nat.cast_ne_zero.mpr (_root_.ne_of_gt (Nat.succ_le_iff.mp hr))
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma two_mul_natCast_ne_top (r : ℕ) :
     (2 * (r : ENNReal)) ≠ ⊤ :=
   ENNReal.mul_ne_top ENNReal.ofNat_ne_top (ENNReal.natCast_ne_top r)
@@ -864,7 +861,7 @@ private lemma two_mul_natCast_ne_top (r : ℕ) :
 private def sqtail (f : ι → α → ℂ) (s : Finset ι) (x : α) : ℝ :=
   ((∑' i : {j // j ∉ s}, ‖f i x‖ ^ 2) ^ (2 : ℝ)⁻¹)
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private def finsetComplSubtypeEquiv (s : Finset ι) :
     {j // j ∉ s} ≃ {j // j ∈ {k : ι | k ∉ s}} where
   toFun i := ⟨i, by simpa only [Set.mem_setOf_eq] using i.2⟩
@@ -872,33 +869,32 @@ private def finsetComplSubtypeEquiv (s : Finset ι) :
   left_inv i := by ext; rfl
   right_inv i := by ext; rfl
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma tsum_finset_compl_eq_indicator (s : Finset ι) (a : ι → ℝ) :
     (∑' i : {j // j ∉ s}, a i) = ∑' i, ({j : ι | j ∉ s}.indicator a) i := by
   rw [← tsum_subtype {j : ι | j ∉ s} a]
   exact (finsetComplSubtypeEquiv (ι := ι) s).tsum_eq
     (fun i : {j // j ∈ {k : ι | k ∉ s}} ↦ a i)
 
-private lemma aemeasurable_sqtail {f : ι → α → ℂ} (hf : ∀ i, Measurable (f i))
+private lemma aemeasurable_sqtail [Countable ι] {f : ι → α → ℂ} (hf : ∀ i, Measurable (f i))
     (s : Finset ι) : AEMeasurable (sqtail f s) μ := by
   have hterm : ∀ i : {j // j ∉ s}, AEMeasurable (fun x ↦ ‖f i x‖ ^ 2) μ := by
     intro i
     exact ((hf i).norm.pow_const (2 : ℕ)).aemeasurable
   exact (AEMeasurable.tsum hterm).pow_const _
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma sqtail_nonneg {f : ι → α → ℂ} (s : Finset ι) (x : α) :
     0 ≤ sqtail f s x := by
   unfold sqtail
   exact Real.rpow_nonneg (tsum_nonneg fun i : {j // j ∉ s} ↦ sq_nonneg ‖f i x‖) _
 
-omit [MeasurableSpace α] [Countable ι] in
+omit [MeasurableSpace α] in
 private lemma sqfct_nonneg_of_summable {f : ι → α → ℂ} (x : α) :
     0 ≤ sqfct f x := by
   unfold sqfct
   exact Real.rpow_nonneg (tsum_nonneg fun i ↦ sq_nonneg ‖f i x‖) _
 
-omit [Countable ι] in
 private lemma sqtail_le_sqfct_ae {f : ι → α → ℂ}
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) (s : Finset ι) :
     ∀ᵐ x ∂μ, sqtail f s x ≤ sqfct f x := by
@@ -921,7 +917,7 @@ private lemma sqtail_le_sqfct_ae {f : ι → α → ℂ}
   exact Real.rpow_le_rpow (tsum_nonneg fun i : {j // j ∉ s} ↦ sq_nonneg ‖f i x‖)
     hle_sum (by positivity)
 
-private lemma memLp_sqtail {f : ι → α → ℂ}
+private lemma memLp_sqtail [Countable ι] {f : ι → α → ℂ}
     (hf : ∀ i, Measurable (f i))
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct f) (2 * r) μ) (s : Finset ι) :
@@ -931,7 +927,6 @@ private lemma memLp_sqtail {f : ι → α → ℂ}
     simpa [Real.norm_of_nonneg (sqtail_nonneg s x),
       Real.norm_of_nonneg (sqfct_nonneg_of_summable x)] using hx
 
-omit [Countable ι] in
 private lemma typeIV_restrict_finset {f : ι → α → ℂ} (hf : TypeIVSuperorthogonal μ f r)
     (s : Finset ι) :
     TypeIVSuperorthogonal μ (fun i : {j // j ∈ s} ↦ f i) r where
@@ -947,16 +942,16 @@ private lemma typeIV_restrict_finset {f : ι → α → ℂ} (hf : TypeIVSuperor
       exact hdist a b hab (Subtype.ext hval)
     simpa [cprod] using hf.superorthogonal (fun i ↦ (j i : ι)) hdist'
 
-private lemma aemeasurable_sqfct_fintype {κ : Type*} [Fintype κ] {g : κ → α → ℂ}
+private lemma aemeasurable_sqfct_fintype {κ : Type*} [Finite κ] {g : κ → α → ℂ}
     (hg : ∀ i, Measurable (g i)) :
     AEMeasurable (sqfct g) μ := by
+  letI := Fintype.ofFinite κ
   have hsum : Measurable fun x ↦ (∑ i, ‖g i x‖ ^ 2 : ℝ) := by
     exact Finset.measurable_fun_sum Finset.univ fun i _ ↦ (hg i).norm.pow_const (2 : ℕ)
   refine ((hsum.pow_const ((2 : ℝ)⁻¹)).aemeasurable).congr ?_
   exact Filter.Eventually.of_forall fun x ↦ by
     rw [sqfct_fintype]
 
-omit [Countable ι] in
 private lemma sqfct_restrict_le_sqtail_ae {f : ι → α → ℂ}
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) {s t : Finset ι}
     (hdisj : Disjoint t s) :
@@ -992,7 +987,6 @@ private lemma sqfct_restrict_le_sqtail_ae {f : ι → α → ℂ}
   exact Real.rpow_le_rpow (Finset.sum_nonneg fun i _ ↦ sq_nonneg ‖f i x‖)
     ht_sum_le (by positivity)
 
-omit [Countable ι] in
 private lemma eLpNorm_sqfct_restrict_le_sqtail {f : ι → α → ℂ}
     (_hf : ∀ i, Measurable (f i))
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) {s t : Finset ι}
@@ -1005,7 +999,7 @@ private lemma eLpNorm_sqfct_restrict_le_sqtail {f : ι → α → ℂ}
     simpa [Real.norm_of_nonneg (sqfct_nonneg_of_summable x),
       Real.norm_of_nonneg (sqtail_nonneg s x)] using hx
 
-private lemma memLp_sqfct_restrict_of_sqtail {f : ι → α → ℂ}
+private lemma memLp_sqfct_restrict_of_sqtail [Countable ι] {f : ι → α → ℂ}
     (hf : ∀ i, Measurable (f i))
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct f) (2 * r) μ) {s t : Finset ι} (hdisj : Disjoint t s) :
@@ -1017,7 +1011,7 @@ private lemma memLp_sqfct_restrict_of_sqtail {f : ι → α → ℂ}
     simpa [Real.norm_of_nonneg (sqfct_nonneg_of_summable x),
       Real.norm_of_nonneg (sqtail_nonneg s x)] using hx
 
-private lemma finset_sum_bound_by_sqtail [Fact (1 ≤ (2 * (r : ENNReal)))]
+private lemma finset_sum_bound_by_sqtail [Countable ι] [Fact (1 ≤ (2 * (r : ENNReal)))]
     (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
     (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
@@ -1051,7 +1045,7 @@ private lemma finset_sum_bound_by_sqtail [Fact (1 ≤ (2 * (r : ENNReal)))]
       exact eLpNorm_sqfct_restrict_le_sqtail (μ := μ) (r := r)
         (f := fun i ↦ (f i : α → ℂ)) hf.measurable hsum hdisj
 
-private lemma finset_sum_norm_le_sqtail_toReal [Fact (1 ≤ (2 * (r : ENNReal)))]
+private lemma finset_sum_norm_le_sqtail_toReal [Countable ι] [Fact (1 ≤ (2 * (r : ENNReal)))]
     (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
     (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
@@ -1069,7 +1063,7 @@ private lemma finset_sum_norm_le_sqtail_toReal [Fact (1 ≤ (2 * (r : ENNReal)))
     ENNReal.mul_ne_top (ne_of_lt (C_lt_top r)) htail_ne_top
   exact (ENNReal.ofReal_le_iff_le_toReal hprod_ne_top).1 hbound
 
-private lemma finset_sum_norm_le_sqfct_toReal [Fact (1 ≤ (2 * (r : ENNReal)))]
+private lemma finset_sum_norm_le_sqfct_toReal [Countable ι] [Fact (1 ≤ (2 * (r : ENNReal)))]
     (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
     (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
@@ -1099,7 +1093,8 @@ private lemma finset_sum_norm_le_sqfct_toReal [Fact (1 ≤ (2 * (r : ENNReal)))]
     ENNReal.mul_ne_top (ne_of_lt (C_lt_top r)) hsq.eLpNorm_lt_top.ne
   exact (ENNReal.ofReal_le_iff_le_toReal hprod_ne_top).1 hbound_full
 
-private lemma tendsto_eLpNorm_sqtail_atTop_zero (hr : 1 ≤ r) {f : ι → Lp ℂ (2 * r) μ}
+private lemma tendsto_eLpNorm_sqtail_atTop_zero [Countable ι] (hr : 1 ≤ r)
+    {f : ι → Lp ℂ (2 * r) μ}
     (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2)
     (hsq : MemLp (sqfct <| fun i ↦ f i) (2 * r) μ) :
@@ -1184,7 +1179,6 @@ private lemma tendsto_eLpNorm_sqtail_atTop_zero (hr : 1 ≤ r) {f : ι → Lp �
     by simpa [one_div] using ENNReal.zero_rpow_of_pos (inv_pos.mpr hp_pos)
   simpa [p, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hptop, hpow0] using hnorm
 
-omit [Countable ι] in
 theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
     [Fact (1 ≤ (2 * (r : ENNReal)))] (hr : 1 ≤ r)
     {f : ι → Lp ℂ (2 * r) μ} (hf : TypeIVSuperorthogonal μ (fun i ↦ f i) r)

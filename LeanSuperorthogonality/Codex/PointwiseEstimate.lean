@@ -245,9 +245,11 @@ omit [Countable ι] in
 private lemma summable_prod_norm {k : ℕ} (a : Fin k → ι → ℂ)
     (ha : ∀ i, Summable (fun j ↦ ‖a i j‖)) :
     Summable (fun j : Fin k → ι => ∏ i, ‖a i (j i)‖) := by
-  induction' k with k ih
-  · exact ⟨_, hasSum_fintype _⟩
-  · have h_tail :
+  induction k with
+  | zero =>
+      exact ⟨_, hasSum_fintype _⟩
+  | succ k ih =>
+    have h_tail :
         Summable (fun j : Fin k → ι => ∏ i, ‖a (Fin.succ i) (j i)‖) :=
       ih (fun i ↦ a (Fin.succ i)) (fun i ↦ ha (Fin.succ i))
     have h_first : Summable (fun j : ι ↦ ‖a (0 : Fin (k + 1)) j‖) := ha 0
