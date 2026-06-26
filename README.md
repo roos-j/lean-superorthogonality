@@ -10,15 +10,15 @@ We restate the theorem below, formulated as closely as practical to the Lean imp
 
 Let $\iota$ be a set, $\alpha$ a measurable space and $\mu$ a measure on $\alpha$.
 
-**Definition.** Let $r\in\mathbb{N}$. A $2r$-tuple $j=(j_i)_{0\le i<2r}$ is called [*all distinct*](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/Defs.lean#L31-L32) if for every $i,i'$ with $i\not=i'$ we have $j_i\not= j_{i'}$.
+**Definition.** Let $r\in\mathbb{N}$. A $2r$-tuple $`j=(j_i)_{0\le i<2r}`$ is called [*all distinct*](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/Defs.lean#L31-L32) if for every $i,i'$ with $i\not=i'$ we have $j_i\not= j_{i'}$.
 
-**Definition.** Let $f=\{f_i\}_{i\in \iota}$ be a family of complex-valued functions and $r\in\mathbb{N}$. Then $(\mu, f, r)$ is called [*type IV superorthogonal*](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/Defs.lean#L38-L42) if for every $i\in\iota$, $f_i$ is measurable and for every all distinct $2r$-tuple $j=(j_i)_{0\le i<2r}$, the function $x\mapsto f_0(x) \cdots f_{r-1}(x) \overline{f_r(x) \cdots f_{2r-1}(x)}$ is integrable, and
+**Definition.** Let $`f=\{f_i\}_{i\in \iota}`$ be a family of complex-valued functions and $r\in\mathbb{N}$. Then $(\mu, f, r)$ is called [*type IV superorthogonal*](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/Defs.lean#L38-L42) if for every $i\in\iota$, $f_i$ is measurable and for every all distinct $2r$-tuple $`j=(j_i)_{0\le i<2r}`$, the function $`x\mapsto f_0(x) \cdots f_{r-1}(x) \overline{f_r}(x) \cdots \overline{f_{2r-1}}(x)`$ is integrable, and
 ```math
-\int f_0 \cdots f_{r-1} \overline{f_r \cdots f_{2r-1}}\,d\mu = 0.
+\int f_0 \cdots f_{r-1} \overline{f_r} \cdots \overline{f_{2r-1}}\,d\mu = 0.
 ```
 
-[**Theorem 1.**](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/MainTheorem.lean#L35-L41) Let $\iota$ be countable and $r\ge 1$ a natural number. Let $\{f_i\}_{i\in\iota}$ be a family of equivalence classes wrt. $\mu$ a.e.-equality of complex-valued functions with $f_i\in L^{2r}(d\mu)$. Let $(\mu,f,r)$ be type IV superorthgonal. Assume that for $\mu$-a.e. $x$, the sum $\sum_{i\in\iota} |f_i(x)|^2$ converges and that the square-function $x\mapsto \Big(\sum_{i\in\iota} |f_i(x)|^2\Big)^{1/2}$ is in $L^{2r}(d\mu)$.
-Then the series $\sum_{i\in\iota} f_i$ converges unconditionally in $L^{2r}(d\mu)$ and we have
+[**Theorem 1.**](https://github.com/roos-j/lean-superorthogonality/blob/c8c070fc1a2f0bf52246817c0c2e663f29a0c760/LeanSuperorthogonality/MainTheorem.lean#L35-L41) Let $\iota$ be countable and $r\ge 1$ a natural number. Let $`\{f_i\}_{i\in\iota}`$ be a family of equivalence classes wrt. $\mu$ a.e.-equality of complex-valued functions with $`f_i\in L^{2r}(d\mu)`$. Let $(\mu,f,r)$ be type IV superorthgonal. Assume that for $\mu$-a.e. $x$, the sum $`\sum_{i\in\iota} |f_i(x)|^2`$ converges and that the square-function $`x\mapsto \Big(\sum_{i\in\iota} |f_i(x)|^2\Big)^{1/2}`$ is in $`L^{2r}(d\mu)`$.
+Then the series $`\sum_{i\in\iota} f_i`$ converges unconditionally in $L^{2r}(d\mu)$ and we have
 ```math
 \Big\|\sum_{i\in\iota} f_i\Big\|_{2r} \le C_r \Big\| \Big(\sum_{i\in\iota} |f_i|^2\Big)^{1/2} \Big\|_{2r},
 ```
@@ -35,7 +35,7 @@ There are some limitations on the extent to which the mathematically conventiona
 * The Lean formulation of the theorem has the "additional" hypothesis that the `Fact` $1\le 2r$ holds as an inequality in $\mathbb{R}_{\ge 0\infty}$ (extended nonnegative reals). This redundancy is there to allow Lean to infer the topology of $L^{2r}(d\mu)$ by typeclass inference.
 The typeclass inference system is powerful, but it does not automatically discover that this fact is a consequence of the hypothesis $r\ge 1$ in $\mathbb{N}$.
 
-### Verification
+### Verification / build instructions
 
 To build and verify the formalization locally follow these steps:
 
@@ -43,7 +43,7 @@ To build and verify the formalization locally follow these steps:
 
 * Clone this repository using
 
-`git clone https://github.com/roos-j/lean-superorthogonal`
+`git clone https://github.com/roos-j/lean-superorthogonality`
 
 * Open the repository folder in VSCode, open a terminal and run
   
