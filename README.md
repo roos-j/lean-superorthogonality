@@ -80,4 +80,4 @@ The project maintains strict separation of machine-generated code from human-gen
 
 Lean certifies correctness of the human-written theorems, so the machine-generated proofs never have to be trusted or reviewed by a human[^1].
 
-[^1]: Within reason. The code still has to be reviewed sufficiently to ensure that Codex followed instructions and did not attempt to act adverserially, for example by writing adverserial meta programs or otherwise trying to compromise the user's system. The degree to which machine-generated code has to be looked at can be further minimized by relying on a correctness judge like [Lean Comparator](https://github.com/leanprover/comparator).
+[^1]: Within reason. The code still had to be reviewed sufficiently to ensure that Codex followed instructions and did not attempt to act adverserially, for example by writing adverserial meta programs or otherwise trying to compromise the user's system. The degree to which machine-generated code has to be looked at can be further minimized by relying on a correctness judge like [Lean Comparator](https://github.com/leanprover/comparator).
