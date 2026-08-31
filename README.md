@@ -38,7 +38,11 @@ Representing the informal mathematical formulation in Lean involves various harm
 * The Lean formulation of the theorem has the "additional" hypothesis that the `Fact` $1\le 2r$ holds as an inequality in $\mathbb{R}_{\ge 0\infty}$ (extended nonnegative reals). This redundancy is there to allow Lean to infer the topology of $L^{2r}(d\mu)$ by typeclass inference.
 The typeclass inference system is powerful, but it does not automatically discover that this fact is a consequence of the hypothesis $r\ge 1$ in $\mathbb{N}$.
 
-### Verification / build instructions
+### Palomar registration
+
+This formalization is registered in Palomar as [PALOMAR-2026-08-31-000015](https://palomar-registry.org/entry?id=PALOMAR-2026-08-31-000015&version=1). Palomar is a public, searchable registry of Lean formalizations whose proofs have been machine-checked. Each entry points to an immutable version of a public repository and records the exact formal statement that was checked, its dependencies, the result of the proof check, and the findings of a documented editorial review.
+
+### Build instructions
 
 To build and verify the formalization locally follow these steps:
 
