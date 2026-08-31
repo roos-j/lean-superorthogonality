@@ -1,4 +1,5 @@
 ## Formalization of type IV superorthogonality
+[![Lean](https://github.com/roos-j/lean-superorthogonality/actions/workflows/lean.yml/badge.svg?branch=master)](https://github.com/roos-j/lean-superorthogonality/actions/workflows/lean.yml)
 
 This repository contains a formalization of the main result (Theorem 1) in the paper
 
@@ -26,7 +27,7 @@ where $C_1=1$ and $C_r = 2^{1/2} ((2r)! - 1)^{1/2}$ for $r\ge 2$.
 
 ### Implementation notes
 
-There are some limitations on the extent to which the mathematically conventional formulation can match the actual Lean implementation, which must follow the rules of Lean's type theory.
+Representing the informal mathematical formulation in Lean involves various harmless implementation choices:
 
 * Mathematically, elements $f$ of $L^{2r}(d\mu)$ are equivalence classes of functions with respect to $\mu$-a.e. equality. Since the notions of type IV superorthogonality and square-functions are formalized for functions rather than equivalence classes, one must pass to a representative of $f$. In Lean this is achieved by a type coercion, which is often implicit, similarly to mathematical convention.
 
@@ -67,6 +68,8 @@ Alternatively, run
 `lake build`
 from the terminal in VSCode.
 
+In addition, the formalization can also be checked with [Lean Comparator](https://github.com/leanprover/comparator#readme). This is the purpose of the files [Challenge.lean](Challenge.lean) and [Solution.lean](Solution.lean). `Challenge.lean` intentionally contains a `sorry` for this purpose, while `Solution.lean` supplies the proof.
+
 ### Autoformalization
 
 The bulk of the ~3k lines of code in this project is machine-generated.
@@ -80,4 +83,4 @@ The project maintains strict separation of machine-generated code from human-gen
 
 Lean certifies correctness of the human-written theorems, so the machine-generated proofs never have to be trusted or reviewed by a human[^1].
 
-[^1]: Within reason. The code still had to be reviewed sufficiently to ensure that Codex followed instructions and did not attempt to act adverserially, for example by writing adverserial meta programs or otherwise trying to compromise the user's system. The degree to which machine-generated code has to be looked at can be further minimized by relying on a correctness judge like [Lean Comparator](https://github.com/leanprover/comparator).
+[^1]: Within reason. The code still had to be reviewed sufficiently to ensure that Codex followed instructions and did not attempt to act adverserially, for example by writing adverserial meta programs or otherwise trying to compromise the user's system. We also assume soundness of the Lean kernel, which is a non-trivial assumption.
