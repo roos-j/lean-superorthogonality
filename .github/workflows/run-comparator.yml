@@ -1,0 +1,94 @@
+name: Run Comparator
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  comparator:
+    name: Check formalization with Comparator
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+      - uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1
+        with:
+          build: true
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.24.0"
+          cache: false
+      - name: Run pinned Comparator toolchain
+        env:
+          PALOMAR_COMPARATOR_CACHE: ${{ runner.temp }}/palomar-comparator
+        # Kept inline because GitHub-hosted runners do not have user-local Codex skills.
+        run: |
+          set -euo pipefail
+
+          repository_root="$GITHUB_WORKSPACE"
+          cache_root="${PALOMAR_COMPARATOR_CACHE:-"$repository_root/.cache/palomar-comparator"}"
+          bin_dir="$cache_root/bin"
+          comparator_dir="$cache_root/comparator"
+          lean4export_dir="$cache_root/lean4export"
+          nanoda_dir="$cache_root/nanoda"
+
+          comparator_commit=575674928e239f5bc452aab72d1dd7b0f1326494
+          lean4export_commit=b66b1cd7b8819db6059bc3d6093b22b0a380e793
+          landrun_commit=811cfff51ceaf3d9843708aa6d22e9b84ccac8b4
+          nanoda_commit=68d5ca9db226849b41a6fff59d796ff19d0a8840
+
+          checkout_exact() {
+            local repository=$1
+            local destination=$2
+            local commit=$3
+
+            if [ ! -d "$destination/.git" ]; then
+              git clone --filter=blob:none "$repository" "$destination"
+            fi
+            git -C "$destination" fetch --depth 1 origin "$commit"
+            git -C "$destination" checkout --detach "$commit"
+          }
+
+          mkdir -p "$cache_root" "$bin_dir"
+
+          checkout_exact https://github.com/leanprover/comparator.git "$comparator_dir" "$comparator_commit"
+          checkout_exact https://github.com/leanprover/lean4export.git "$lean4export_dir" "$lean4export_commit"
+          checkout_exact https://github.com/robsimmons/nanoda_lib.git "$nanoda_dir" "$nanoda_commit"
+
+          project_toolchain=$(tr -d '[:space:]' < "$repository_root/lean-toolchain")
+          lean4export_toolchain=$(tr -d '[:space:]' < "$lean4export_dir/lean-toolchain")
+          if [ "$project_toolchain" != "$lean4export_toolchain" ]; then
+            echo "error: project toolchain $project_toolchain does not match" >&2
+            echo "the pinned lean4export toolchain $lean4export_toolchain" >&2
+            exit 1
+          fi
+
+          GOBIN="$bin_dir" CGO_ENABLED=0 go install "github.com/zouuup/landrun/cmd/landrun@$landrun_commit"
+          (cd "$comparator_dir" && lake build comparator)
+          (cd "$lean4export_dir" && ELAN_TOOLCHAIN="$project_toolchain" lake build lean4export)
+          (cd "$nanoda_dir" && cargo build --release --locked)
+
+          cd "$repository_root"
+          lake exe cache get
+
+          export COMPARATOR_LANDRUN="$bin_dir/landrun"
+          export COMPARATOR_LEAN4EXPORT="$lean4export_dir/.lake/build/bin/lean4export"
+          export COMPARATOR_NANODA="$nanoda_dir/target/release/nanoda_bin"
+          lake env "$comparator_dir/.lake/build/bin/comparator" comparator.json
