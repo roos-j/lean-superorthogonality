@@ -4,9 +4,8 @@ version: "v0.4"
 project:
   name: "Formalization of type IV superorthogonality"
   description: >-
-    A Lean formalization of Theorem 1 of Gressman--Pierce--Roos--Yung: a
-    type-IV superorthogonal family has an unconditional L^(2r) sum controlled
-    by its square function.
+    A Lean formalization of the main result (Theorem 1) of the paper 
+    *P. T. Gressman, L. B. Pierce, J. Roos, and P.-L. Yung. A new type of superorthogonality. Proc. Amer. Math. Soc. 152, 665-675, 2024*.
   authors:
     - "Joris Roos"
   license: "Apache-2.0"
