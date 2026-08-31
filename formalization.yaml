@@ -5,7 +5,9 @@ project:
   name: "Formalization of type IV superorthogonality"
   description: >-
     A Lean formalization of the main result (Theorem 1) of the paper 
-    *P. T. Gressman, L. B. Pierce, J. Roos, and P.-L. Yung. A new type of superorthogonality. Proc. Amer. Math. Soc. 152, 665-675, 2024*.
+    "A new type of superorthogonality" by P. T. Gressman, L. B. Pierce, J. Roos, and P.-L. Yung; arXiv:2212.08956, Proc. Amer. Math. Soc. 152, 665-675, 2024.
+    The theorem provides a simple criterion on a family of functions that implies a square function estimate on Lp for every even integer p ≥ 2.
+    This defines a new type of superorthogonality that is verified by checking a less restrictive criterion than any other type of superorthogonality previously known.
   authors:
     - "Joris Roos"
   license: "Apache-2.0"
