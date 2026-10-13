@@ -40,7 +40,7 @@ To build and verify the formalization locally follow these steps:
 * Run `lake build`
 from the terminal in VSCode.
 
-In addition, the formalization can also be checked with [Lean Comparator](https://github.com/leanprover/comparator#readme). This is the purpose of the files [Challenge.lean](Challenge.lean) and [Solution.lean](Solution.lean). `Challenge.lean` intentionally contains a `sorry` for this purpose, while `Solution.lean` supplies the proof.
+The GPRY Palomar submission files, including `Challenge.lean`, `Solution.lean`, `comparator.json`, `formalization.yaml`, and the Comparator workflow, are maintained on the [`palomar-gpry` branch](https://github.com/roos-j/lean-superorthogonality/tree/palomar-gpry). On that branch, the formalization can also be checked with [Lean Comparator](https://github.com/leanprover/comparator#readme). `Challenge.lean` intentionally contains a `sorry` for this purpose, while `Solution.lean` supplies the proof.
 
 ### Autoformalization
 

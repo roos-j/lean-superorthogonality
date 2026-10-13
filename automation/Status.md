@@ -264,3 +264,6 @@ Verification (2026-10-12T21:15:36.2080774-04:00): lake build LeanSuperorthogonal
 
 Verification (2026-10-12T21:58:56.8099425-04:00): Updated Solution.lean import and documentation to LeanSuperorthogonality.Theorems under explicit user authorization. Full lake build passes (8576 jobs), resolving the prior missing-import blocker. Challenge.lean retains its intentional sorry. Changes are uncommitted.
 
+
+Branch separation (2026-10-12T22:05:35.5128775-04:00): palomar-gpry preserves the five GPRY submission files at 7e475c5. Master removes them and their Lake targets; README points to the dedicated branch. Full lake build passes (8572 jobs). No branches pushed.
+

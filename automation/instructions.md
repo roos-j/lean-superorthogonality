@@ -110,3 +110,8 @@ Solution import fix verified (2026-10-12T21:58:56.8099425-04:00): full lake buil
 
 Commit the pending Solution.lean fix and tracking updates under the established [codex] convention. The follow-up instruction defers pushing; do not push until authorized again.
 
+
+## Palomar branch separation (2026-10-12T22:05:09.1220583-04:00, recording time)
+
+Create palomar-gpry preserving the GPRY Palomar submission files, including formalization.yaml; remove those files from master. Scope includes Challenge.lean, Solution.lean, comparator.json, formalization.yaml, the Comparator workflow, and necessary Lake/README updates. Preserve proof modules on both branches. No push authorized; keep master checked out.
+

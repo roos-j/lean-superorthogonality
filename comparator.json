@@ -1,7 +1,0 @@
-{
-  "challenge_module": "Challenge",
-  "solution_module": "Solution",
-  "theorem_names": ["Superorthogonal.sqfct_estimate_of_type_iv_superorthogonal"],
-  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
-  "enable_nanoda": true
-}
