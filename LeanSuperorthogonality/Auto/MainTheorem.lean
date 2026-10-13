@@ -1,11 +1,11 @@
 /-
-The code in namespace `Codex` was machine generated.
+The code in namespace `Auto` was machine generated.
 -/
 module
 
 public import LeanSuperorthogonality.Defs
 
-import LeanSuperorthogonality.PointwiseEstimate
+import LeanSuperorthogonality.Auto.PointwiseEstimate
 
 /-!
 Formalizing arXiv:2212.08956
@@ -16,6 +16,7 @@ Formalizing arXiv:2212.08956
 namespace Superorthogonal
 
 open MeasureTheory Nat Set
+open GPRY
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
@@ -23,7 +24,7 @@ variable {ι : Type*}
 
 variable {r : ℕ}
 
-namespace Codex
+namespace Auto
 
 private abbrev pointwiseFamily (f : ι → α → ℂ) (r : ℕ) (x : α) :
     Fin (2 * r) → ι → ℂ :=
@@ -1233,7 +1234,7 @@ theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
   change ENNReal.ofReal ‖∑' j, f j‖ ≤ B
   exact (ENNReal.ofReal_le_iff_le_toReal hB_ne_top).2 hnorm_le
 
-end Codex
+end Auto
 
 end Superorthogonal
 

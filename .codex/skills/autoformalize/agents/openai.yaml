@@ -1,4 +1,4 @@
 interface:
   display_name: "Autoformalize"
-  short_description: "Fill Lean sorries safely in Codex blocks"
-  default_prompt: "Use $autoformalize to fill the next Lean sorry in the target file."
+  short_description: "Formalize papers and blueprints in Lean 4"
+  default_prompt: "Use $autoformalize to formalize this paper or blueprint in Lean 4, discovering local instructions and resuming any existing progress."

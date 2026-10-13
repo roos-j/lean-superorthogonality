@@ -1,5 +1,5 @@
 /-
-The code in namespace `Codex` was machine generated.
+The code in namespace `Auto` was machine generated.
 -/
 module
 
@@ -16,6 +16,7 @@ Formalizing arXiv:2212.08956
 namespace Superorthogonal
 
 open MeasureTheory Nat Set
+open GPRY
 
 variable {α : Type*} [MeasurableSpace α]
 variable (μ : Measure α)
@@ -29,7 +30,7 @@ section PointwiseEstimate
 
 variable {k : ℕ}
 
-namespace Codex
+namespace Auto
 
 private abbrev pointwiseConstant (k : ℕ) : ENNReal :=
   ((k)! - 1 : ENNReal)
@@ -1353,7 +1354,7 @@ theorem pointwise_estimate (hk : 2 ≤ k) (a : Fin k → ι → ℂ)
   exact pointwise_estimate_of_normalized hk
     (fun b hb hBb ↦ pointwise_estimate_normalized hk b hb hBb) a ha
 
-end Codex
+end Auto
 
 end PointwiseEstimate
 

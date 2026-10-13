@@ -1,35 +1,183 @@
 ---
 name: autoformalize
-description: Lean formalization workflow for filling user-specified `sorry`s, especially in files with an AI-generated `namespace Codex` scaffolding around target declarations. Use when the user invokes `/autoformalize`, asks Codex to prove Lean sorries, continue an autoformalization, or formalize arguments from mathematical sources while preserving target theorem statements.
+description: Formalize mathematical papers or blueprints in Lean 4 with Mathlib, starting in an empty repository or continuing an existing formalization. Use for source-directed proof development, completing source-backed Lean sorries, and resuming autoformalization while discovering project-local instructions and preserving the intended theorem statements.
 ---
 
 # Autoformalize
 
-Fill `sorry`s as requested by the user, using the mathematical hints and sources indicated by the user when needed.
+Turn the requested mathematical source into faithful, kernel-checked Lean proofs. Continue through the agreed targets; a plan, statement scaffold, or collection of helpers is not a completed formalization.
 
-## Scope Rules
+## Keep the Codex and Claude editions synchronized
 
-- Modify only the target file explicitly named by the user, or the single file clearly in scope from the conversation.
-- Except for imports, modify code only inside lexical `namespace Codex ... end Codex` blocks in the target file.
-- You may add or adjust imports in the target file when necessary, but imports you add must not be marked `public`. Do not turn an import into a `public import`.
-- Do not refactor unrelated code, move unrelated declarations, or clean unrelated warnings.
+This is the Codex edition. The paired skills are normally installed at `~/.codex/skills/autoformalize/` (Codex; use `$CODEX_HOME/skills/autoformalize/` when configured) and `~/.claude/skills/autoformalize/` (Claude). Whenever an agent updates either edition, it must also update the corresponding other edition, including affected supporting references and bundled assets, in the same task. Read both before editing, preserve any newer compatible changes, and keep their shared guidance aligned. Preserve edition-specific generation notices, commit prefixes, co-author attribution, and client metadata. Validate both editions; if the counterpart cannot be located or updated, report that synchronization remains incomplete rather than silently leaving it stale.
 
-## Declaration Rules
+## Discover the task before editing
 
-- Existing declarations marked `private` are AI-generated scaffolding. You may modify, replace, or delete them as needed, but only to support the requested target proof.
-- Declarations not marked `private` are target declarations. Do not change their names, statements, hypotheses, visibility, attributes, namespace placement, or surrounding structure. You may however make any changes to their proofs and your task is to eventually eliminate all `sorry`s.
-- Any new declaration you introduce, including definitions, abbrevs, lemmas, and theorems, must be marked `private`.
+1. Establish the working directory and repository root, including whether a Git repository or Lean project exists. Read applicable ancestor and root `AGENTS.md` files, then any more specific instructions governing the files you will touch.
+2. Discover project guidance with `rg --files --hidden`, excluding dependency, build, cache, and generated-output trees. Look for `Instructions*.md` (case-insensitively), `README.md`, `CONTRIBUTING.md`, relevant `CLAUDE.md`/`GEMINI.md`, and local skills under `.agents/skills`, `.codex/skills`, or `.claude/skills`. Read relevant local `SKILL.md` files, including a project-local `autoformalize` skill if present. Inspect likely `automation/`, `meta/`, `docs/`, and blueprint directories. If an explicitly referenced file is absent, search for a moved or renamed copy and, if necessary, ignored files. Do not silently skip instructions because an old path is stale.
+3. Select instructions for the active effort, not simply the newest file in a repository containing several projects. Follow their references and read the relevant status ledger, error report, source material, Lean declarations, build configuration, and working-tree diff. Treat old reports as leads to verify, not proof of the current state. Do not reopen completed unrelated efforts.
+4. Specific user prompts override previous user/project instructions and this skill wherever they conflict. Record them, in distilled and raw form with timestamps, as required below; a newer user correction controls over an older distilled summary. Discover and follow applicable project-specific instructions, including the user's authorized files and explicit exceptions to the generic rules below. An existing layout or older convention alone does not waive the `Auto/`, `Auto` namespace, single-file, or generation-notice requirements. For conflicts among otherwise equally applicable instructions, prefer an explicit superseding decision, then newer operative guidance. Use dated decisions and Git history to distinguish actual revisions from file moves or checkout timestamps. A newer unrelated project or historical handoff does not override the active project's rules. Ask if a material conflict remains unresolved.
+5. Identify the exact source version and target results. Accept a blueprint, paper, PDF, TeX source, or link; obtain and read the actual statements and proofs. Prefer supplied TeX and resolve its included files/macros; inspect the PDF when extraction or rendering obscures mathematics. Never guess a statement from its label, title, abstract, or an earlier agent's summary.
 
-## Workflow
+For a paper without specified targets, default to the main results and every prerequisite needed to prove them. For a blueprint, use its stated targets and their dependency closure; if it has no target designation, include its mathematical definitions and results. Record this interpretation and surface any consequential ambiguity, such as choosing between paper versions or including an independent supplementary theorem. Routine naming and elementary proof choices within the authorized file scope do not need confirmation. A request to fill specific sorries remains scoped to those proofs and their prerequisites; it does not automatically request a whole-paper formalization.
 
-- Work on `sorry`s in `namespace Codex` one by one, from top to bottom, unless the user specifies a different target.
-- Before proving a `private` sorry, check whether the statement is actually needed and mathematically sensible.
-- If a `private` statement is false, malformed, too strong, or not useful for the target proof, revise or delete it before moving on.
-- If a non-private target statement appears false or impossible under the stated assumptions, do not change it. Report the obstruction clearly.
-- Keep the proof plan aligned with the mathematical argument indicated by the user or source.
+## Ensure repository agent instructions
 
-## Validation
+On initialization or resumption, after discovering applicable local guidance, create a repository-root `AGENTS.md` automatically if it is absent. This is a standing file-creation authorization; do not ask for confirmation. Preserve an existing `AGENTS.md` rather than overwriting it.
 
-- After edits, run the appropriate Lean check for the target file.
-- If the final target theorem is meant to be sorry-free, verify that it no longer depends on `sorryAx`, for example with `#print axioms` when appropriate.
-- Report any remaining axioms, skipped checks, or blockers honestly.
+The new file must direct agents to read and follow the Codex autoformalize skill at `.codex/skills/autoformalize/SKILL.md` when present, otherwise the user-installed copy at `~/.codex/skills/autoformalize/SKILL.md` (or `$CODEX_HOME/skills/autoformalize/SKILL.md` when configured). Use relative or user-directory-relative paths. It must also direct agents to read applicable instructions in `automation/`, beginning with `automation/instructions.md` or the existing equivalent, and state explicitly that those local instructions supersede conflicting skill guidance. The user's current explicit instructions take precedence over both.
+
+## Record user prompts and their precedence
+
+During autoformalization, record the distilled instructions for every task-specific user prompt in `automation/instructions.md` and its raw text in `automation/raw.md` before carrying out its new direction, including the initial request, follow-ups, corrections, scope changes, and answers to clarification questions. Reuse an existing `Instructions.md` or effort-specific instructions filename within `automation/`; do not create a second file just to change capitalization. Active records found elsewhere must be brought into `automation/` as described below.
+
+For each prompt, keep both a concise distilled account of its operative instructions and the raw prompt in `automation/raw.md`, preserving its wording, mathematics, and line breaks except that absolute filesystem paths must be normalized under the relative-path rule below. This normalization is the only exception to verbatim logging. Associate both with an ISO 8601 timestamp in the computer's local timezone, including the correct UTC offset. Use the receipt time when available, converted to that local timezone; otherwise obtain the local system time and label it as the recording time. Do not invent historical timestamps or reconstruct unavailable raw wording from a summary.
+
+Keep the current distilled instructions easy to find, with links or identifiers connecting them to the timestamped raw entries. Append raw prompts chronologically in `automation/raw.md` and preserve them when later instructions supersede them; update the distilled account to reflect the latest instructions. Do not duplicate prompts already logged on resumption. If distillation loses a qualification or conflicts with the raw prompt, the user's actual wording controls. These user instructions override every conflicting earlier instruction, including requirements and defaults in this skill; retain earlier instructions that remain compatible.
+
+## Relative paths in every file
+
+Never write absolute filesystem paths to any files. Always use repository-relative paths or user-directory-relative paths such as `~/.codex` (or `~\.codex`). Apply this to source, configuration, documentation, Markdown links, saved commands, logs, raw prompts, and captured tool output. Normalize paths before saving, including paths in existing text being migrated or rewritten. Preserve the referenced location; resolve relative paths or home-directory expressions at runtime when a tool requires an absolute path.
+
+## Generic file and namespace requirements
+
+- Machine-generated Lean files must go in the project's `Auto/` folder unless the user specifies otherwise. Depending on the source root, this may be `Auto/` or `Project/Auto/`; keep the folder name `Auto` and use an already established location when available.
+- Create new files only as authorized by the user. Check the current request and applicable user-approved instructions for existing authorization; do not ask again when the file is already covered. This applies to supporting files and scratch files as well as permanent Lean files. Suggested layouts do not themselves authorize file creation; the project-configuration and reusable-prerequisites clauses below are explicit standing exceptions. If a necessary file is not covered by authorization or those exceptions, identify its exact proposed path and purpose and ask for the missing authorization before creating it.
+- The default is a single Lean file for the whole formalization: definitions, ordinary prerequisites, auxiliary lemmas, and target proofs all go in that file. Use the authorized existing target file when one is supplied. Create a separate file for each substantial reusable prerequisite qualifying under the exception below. Other splits into companion modules or foundation files require user authorization; organizational convenience alone does not qualify.
+- All Lean code you write must be in `namespace Auto ... end Auto`, including helper declarations and proofs. Use the namespace `Auto`, not `Codex` or the project's own namespace; do not introduce subnamespaces unless specified by the user. File headers and imports necessarily precede the namespace. If a requested edit conflicts with this rule or a protected existing interface, resolve the conflict rather than silently moving or renaming the user's declarations.
+
+## Reusable prerequisites: standing file-creation exception
+
+When the argument needs a substantial general fact unavailable in the repository or its dependencies, create exactly one dedicated Lean file directly in `Auto/` for that reusable prerequisite, never in a subfolder. This is user-authorized as an exception to the single-file default and the restriction on creating files; do not request additional confirmation when its conditions are defensibly met. It retains the `Auto` namespace, generation notice, and proof-verification requirements.
+
+Establish and document why the exception applies before creating the file:
+
+- **Needed and missing:** Identify the exact project use case(s) and search the repository and pinned dependencies for the fact, including equivalent formulations. Reuse or adapt an adequate existing result instead of duplicating it. A missing wrapper or inconvenient theorem name is not a missing substantial theorem.
+- **Substantial and general:** Give a defensible mathematical reason for a separate reusable development. Useful tests are whether the result has a generally accepted name, or whether explaining it would take roughly a full university lecture and it is likely to appear in a university textbook or lecture notes. These are indicators of mathematical substance, not a requirement that both tests hold. Lengthy Lean bookkeeping or an invented name does not by itself qualify.
+- **Exactly one file per qualifying prerequisite:** Choose a descriptive theorem-based filename directly in `Auto/`, such as `Auto/NamedTheorem.lean` (or `Project/Auto/NamedTheorem.lean` for that source root). No subfolders and no companion files are allowed for the prerequisite. Put the theorem and all definitions and supporting lemmas newly developed specifically for it in that one file. Reuse the same file for every project application. A mathematically distinct substantial missing theorem may qualify separately, with its own justification and exactly one file; do not relabel stages of one prerequisite's proof as separate instances to evade this limit.
+
+Seek a reusable, reasonably general formulation of the kind expected in a textbook. State meaningful hypotheses and conclusions independently of incidental paper-specific constructions, and expose a theorem usable by other developments. The prerequisite theorem's statement must depend only on Mathlib (including its Lean foundations) and definitions local to that same file. This includes types, implicit parameters, typeclasses, and definitions appearing in its hypotheses and conclusion. Local definitions must themselves use only Mathlib or definitions in that file; wrapping an imported project-specific definition in a local alias does not satisfy the restriction. The statement must not depend on declarations from the main formalization, other project files, or other dependencies outside Mathlib. Proofs may reuse already proved results without introducing their project-specific vocabulary into the statement.
+
+The formulation must cover at least every use case needed in this project; prove the specializations or bridges that establish this in the consuming project file, keeping the reusable statement independent of those applications. Avoid both a narrow theorem hard-wired to one application and speculative generality that does not serve a reasonable textbook formulation. Keep its import dependencies independent of the main proof module so that the main formalization can import and apply it without a cycle.
+
+The file's Lean module docstring (`/-! ... -/`, after the header and imports) must name and explain the theorem, describe the mathematical formulation and hypotheses, and give verified references. Identify textbook, lecture-note, or original-source locations precisely where available, with useful links; do not invent citations. Keep the required generation notice in the separate opening header. Prove the reusable result completely under the same source-fidelity and axiom standards as the main work. Before recording completion, inspect the elaborated statement and its local definitions for the required dependence on Mathlib/local definitions only; an axiom audit alone does not establish this. Then return to the dependent project step.
+
+In `automation/Status.md`, put a dedicated section for each reusable prerequisite immediately after the lines for the main theorem statements and before any main-proof lines. Order prerequisite sections and their proof steps by their own dependencies. Each section must contain a concise justification for invoking this exception (need, missing library coverage, mathematical substance, chosen generality, and file path) and timestamped status rows tracking the work and remaining proof obligations. Record this when opening the prerequisite, and update it as work advances; file creation or a theorem statement alone is not completion. This required justification belongs in `Status.md`, even when ordinary source rows otherwise contain no explanatory prose.
+
+## Required machine-generation notice
+
+Machine-generated source files must carry this exact notice at the top, using the file format's comment syntax:
+
+```text
+This file was automatically generated by Codex.
+```
+
+Every Lean file in an `Auto/` folder must begin with a standard header whose first three physical lines are, in order:
+
+1. Copyright notice including the year and the copyright holder's name (the user's name), with the opening `/-` on this same line. A year alone is insufficient.
+2. License notice.
+3. The exact sentence `This file was automatically generated by Codex.`
+
+Close the header comment with `-/` on the following line. Do not put a blank line, a standalone comment opener, imports, or other content before or between these first three lines. Use the generation notice in place of an `Authors:` line, not a paraphrase. Preserve the project's actual copyright holder, year, license, and existing legal attribution; do not invent legal information or relabel human-authored material as wholly machine-generated. Imports and module documentation follow the header. Use the user's established name from explicit instructions or reliable project attribution; do not substitute the agent name, a guessed name derived from a directory/login, or an unfilled placeholder. If the name cannot be established, ask for it before finalizing the header. When checking the header, verify that the first line actually contains the user's name, not merely a copyright symbol and year.
+
+## Standard Lake library root and import file
+
+Always keep each Lean library's `roots` at its default single whole-module name: for `lean_lib Project`, omit `roots` (preferred), or use exactly `roots = ["Project"]` in TOML / ``roots := #[`Project]`` in Lean. Use the existing Lean library name, not a differently spelled package name. Never replace or extend this with individual proof modules such as `Project.Auto.MainResult`; do not use `globs` to bypass the root import file or narrow the library to the current task.
+
+Maintain the usual top-level `Project.lean` in the library source directory (normally the repository root). It imports the library's production Lean modules, including manual modules and generated `Auto/` modules. Preserve existing imports and keep this file synchronized when modules are added or renamed. Check that every intended module is reachable through its imports; exclude scratch files and avoid import cycles by having implementation modules import their dependencies rather than the top-level file.
+
+Creating and maintaining this import file is standing authorization and an explicit exception to the `Auto/` location and single-formalization-file rules. Keep definitions and proofs in their authorized modules; the top-level file needs only imports and the applicable header. Preserve the normal default library target so `lake build` builds through this file. For a targeted check, select a module on the command line instead of changing `roots`, `globs`, or the top-level imports. Respect any user prohibition on rebuilding expensive or frozen modules.
+
+## Initialize or resume
+
+For an empty or incompletely configured repository, read [references/bootstrap.md](references/bootstrap.md). Within the user's file-creation authorization, create a minimal reproducible Lean 4/Mathlib project, a place for the source, local continuation instructions, and a status ledger. Creating the minimal project configuration needed to compile the requested formalization is automatically authorized: `lean-toolchain`, one of `lakefile.toml` or `lakefile.lean`, the Lake-generated `lake-manifest.json`, and the standard top-level library import file described above. Create these files without asking for separate file-creation approval, even when the user names an existing Lean file as the proof destination. Preserve existing compatible configuration and pins. This exception covers project configuration and the top-level import file; it does not change environment permissions or authorize extra Lean proof files. A paper does not require a separate polished blueprint before proof work can begin.
+
+For an existing repository, preserve its toolchain, dependency pins, public interfaces, and existing results. Apply the generic file and namespace requirements to your work, subject to the user's specified exceptions; do not reorganize unrelated existing code to impose them retroactively. Preserve the active effort's existing records and history, bringing its instructions, status, and error-report files into `automation/` if necessary rather than creating a second tracking system. Check the current build and inspect incomplete declarations, including already present sorries. Re-audit the prerequisites on the active path against their actual statements and dependencies before choosing where to resume. A stale `complete`, `qualified`, or `Statement completed` label is not evidence of a finished proof.
+
+Do not infer that `private` means disposable or that public declarations are freely editable. Those meanings must come from local instructions. Preserve user-provided target names and statements; report a false or materially ambiguous target instead of changing it to make a proof possible.
+
+## Git
+
+If no Git repository owns the working directory, initialize one with `git init`. Check for an enclosing repository or worktree first; do not create a nested repository by accident. Initialization must leave an empty history: no initial commit, not even an empty commit, no imported history, and no automatic staging. Existing working files remain intact. Project templates and setup tools must obey this rule too.
+
+Upon initialization, also create these three files at the repository root: an empty `README.md` (zero bytes), `LICENSE` copied verbatim from the bundled [Apache 2.0 license](assets/LICENSE), and `.gitignore` copied from the bundled [Lean/Lake/LaTeX template](assets/.gitignore). Their creation is part of the user's standing initialization instructions and needs no separate confirmation. Empty history does not mean an empty working directory: leave these files uncommitted. If any of them already exists, preserve it; extend existing ignore rules as needed without discarding them, and do not truncate a README or overwrite an existing license. On initialization and resumption, ensure the root `.gitignore` includes `automation/raw.md` by default, preserving existing rules. Do not stage or force-add the raw log. The ignore template covers the raw prompt log, build products and LaTeX auxiliary files while keeping source documents and `lake-manifest.json` eligible for tracking.
+
+Unless explicitly instructed by the user, do not make Git commits or any other changes to Git history. Work in the working tree. Authorization to initialize a repository or perform a formalization does not authorize a commit. Authorization to commit does not by itself authorize amending, rebasing, resetting history, merging, cherry-picking, or pushing; follow the user's explicit scope and applicable identity restrictions, and do not change Git author/committer configuration without authorization.
+
+When a commit is explicitly authorized, unless otherwise instructed, its subject must start with `[codex]` and be exactly one brief descriptive line. Prefer language and mathematical terms from the source document. Brevity matters more than exhaustiveness; `[codex] progress on the main theorem` is acceptable when the work is hard to summarize. Do not add an explanatory commit body. Include the required Codex co-author trailer after a blank line; this attribution metadata is the only addition to the one-line description:
+
+```text
+[codex] brief source-based description
+
+Co-authored-by: Codex <codex@openai.com>
+```
+
+Use an established user-specified Codex co-author address if different. Preserve literal text and newlines when passing a commit message to Git, for example with a message file and `git commit -F`.
+
+## Keep a recurring wake-up until the task is finished
+
+At the start of an autoformalization, and again on every resumption, always set up a recurring 15-minute scheduled job that re-invokes this skill on the active task, so work continues automatically until the assigned targets are completely finished. Use the agent client's own scheduling facility (for Claude Code, a cron entry created with the cron tool; for Codex, the equivalent scheduled-task mechanism). Give the job a prompt that names the repository, the in-scope targets, and their destination files, and that directs the resuming agent to read `automation/instructions.md` and `automation/Status.md` first and to continue in strict forward logical order without stopping after a milestone.
+
+Do not create a second job when an equivalent recurring job for the same task already exists; reuse or update that one. Report the job's identifier to the user when it is created. Delete the job once every in-scope target is proved, the required project checks pass, and the axiom audit is clean, or when the mandatory discrepancy stop hands control back to the user; say in the final report that it was deleted. If the client offers no scheduling facility, say so explicitly rather than silently skipping this requirement.
+
+## Work in strict forward logical order
+
+Read the proof of each target and identify its actual dependency DAG. Before implementing that target's proof, record the substantial steps in a forward topological order: every prerequisite precedes its consumers. Source page order and theorem numbering identify locations, not proof order. Mark shared foundations and independent branches clearly; close every incoming dependency before starting a join.
+
+Unless the user specifies otherwise, work through the proof-work line items of `Status.md` consecutively in their established logical order, completing one before advancing to the next. The main theorem statement rows at the top are an overview, not an instruction to prove a conclusion before its prerequisites. Select the next unfinished work item whose prerequisites are proved; do not bypass a difficult unfinished item for easier downstream work. Keep one item active at a time by default. If a missing prerequisite emerges, apply the reusable-prerequisites clause when it qualifies; otherwise keep it in the main authorized file. Insert it before its consumer, finish it, and return to the selected item. Introduce helper lemmas only when they serve that item. Avoid accumulating speculative foundations, downstream wrappers, or several unfinished branches. A dependency DAG does not itself request extra agents or concurrent work.
+
+For each item:
+
+1. Read its full statement, proof, and invoked references. Search the repository and the pinned Mathlib sources for matching definitions and theorems before implementing replacements. Verify their hypotheses and normalization conventions. If a cited prerequisite has no available Lean proof, formalize the needed result; a literature citation cannot replace a Lean proof.
+2. Choose a Lean statement matching the source's objects, quantifiers, assumptions, ranges, and conclusion. Apply the checks in [references/source-fidelity.md](references/source-fidelity.md) when translating a new statement or auditing a suspect one.
+3. Prove the item, adding only the needed supporting material. Follow the source's mathematical argument while allowing equivalent Lean organization and verified reuse. Document substantive changes of proof route. A shortcut cannot count as completion of omitted source steps that remain in the agreed scope.
+4. Compile the edited source and its dependencies as you iterate. Verify the whole project and the relevant axiom dependencies before marking a source item complete. Update its ledger status immediately, then select the next ready item.
+
+Continue automatically from one completed line item to the next. Unless otherwise specified by the user, stop only once all main theorem(s) in scope are fully proved, the required project checks pass, and their transitive axiom dependencies are a subset of `propext`, `Classical.choice`, and `Quot.sound`. Do not stop after a milestone, useful prerequisite, or partial proof to ask whether to continue. The mandatory stop for a discrepancy requiring a change to a main result, described below, is an exception. If execution is interrupted, preserve the exact current state and resume the next logical item when execution resumes; interruption or handoff is not completion.
+
+The default is proof-first development without introducing `sorry`, `admit`, or new axioms. If the user or applicable local instructions explicitly authorize statement scaffolding, keep it visibly incomplete and separate from proved prerequisites; eliminate the placeholders required by the final scope. Existing authorized out-of-scope sorries are not an invitation to delete or change their targets.
+
+## Report discrepancies and stop when a main result must change
+
+Record every discrepancy between the formalization and its source in `automation/ErrorReport.md`, including corrected errors, different constants or hypotheses, convention differences, and substantive departures from the source argument. Add a timestamped entry when the discrepancy is discovered. Very briefly state the exact source location, what differs, and how it was resolved. If unresolved, say so explicitly and add a timestamped resolution when known; do not imply that a proposed fix has been proved. A short entry is sufficient; keep lengthy analysis in the relevant proof documentation.
+
+If a discrepancy can only be fixed by changing the mathematical content of a main result, **stop the autoformalization, report the obstruction, and ask the user what to do next**. Record the issue and preserve accurate incomplete statuses, but do not change the main statement or continue other proof branches while waiting for the user's direction. This applies to changes in the intended objects, hypotheses, quantifiers, range, or conclusion. Fixing an incorrect Lean translation to match the unchanged intended source theorem, or repairing an unambiguous typo without changing its mathematical meaning, does not trigger this stop; document the fix and continue in logical order. An uncertain substantive repair also needs clarification before it is adopted.
+
+## Preserve the mathematics and its provenance
+
+- Completion requires the intended source claim. A weaker estimate, restricted parameter range, stronger assumption, different operator, unproved bridge, or theorem assuming its own conclusion does not finish that claim. A stronger intermediate theorem is useful once its specialization to the source theorem is actually proved.
+- Reuse established mathematical notions. Add auxiliary definitions when needed for the proof, but never redefine the target into a triviality or hide the missing mathematics inside an assumption or structure field.
+- Check semantic side conditions explicitly. Lean's totalized operations can make an apparently faithful formula vacuous or change its meaning; measurability, finiteness, nonzero denominators, and nonempty domains must reflect the actual source contract, not serve as convenient extra restrictions.
+- Repair clear transcription or typographical errors conservatively and record the discrepancy and resolution in `ErrorReport.md`. Apply the mandatory stop above when a main result's mathematical content must change. Routine omitted details supplied faithfully are proof obligations, not discrepancies by themselves.
+- Use source-based names and document the exact source label/location on the corresponding declaration. Source theorems, lemmas, propositions, and corollaries become Lean `theorem` declarations. Put the mathematical statement in the theorem's own docstring, not in a related constant or definition. Helper docstrings explain their purpose and point to the source result. Do not copy source proofs into statement docstrings.
+- Apply the exact machine-generation notice and header ordering specified above, preserving existing legal attribution.
+
+## Keep resumable records
+
+The formalization's instructions, raw prompt log, status, and error-report Markdown files must live in the repository's `automation/` folder. Use `automation/raw.md` for the raw prompt log and `automation/instructions.md`, `automation/Status.md`, and `automation/ErrorReport.md` by default for the other records; preserve existing capitalization or effort-specific filenames within that folder. References to these filenames elsewhere in this skill mean the corresponding files in `automation/`.
+
+Read legacy records wherever discovery finds them, then relocate or consolidate the active effort's records into `automation/`, preserving their contents and timestamps except for required filesystem-path normalization, moving embedded raw-prompt logs into `automation/raw.md`, and updating pointers to them. Do not maintain a second authoritative set in `meta/`, the repository root, or another folder. Leave unrelated efforts' historical records alone. The user's requirement to maintain these records in `automation/` authorizes the needed record files and their relocation; it does not authorize unrelated files. For an isolated proof fix, maintain the required prompt/discrepancy records and update existing status records as relevant, without adding an unrelated tracking framework.
+
+Keep the operative portion of `instructions.md` compact: source/version, exact targets and exclusions, file and namespace conventions, build commands, settled decisions, and the current next step with its precise obstacle. Keep its timestamped raw-prompt log separately in `automation/raw.md`, with a pointer from the instructions. Preserve raw prompts except for required filesystem-path normalization even as the log grows; brevity is not permission to replace raw prompts with summaries. Distinguish user requirements from implementation choices. Keep historical milestone narratives and mathematical error explanations out of the status ledger.
+
+Default `Status.md` format:
+
+```text
+status | exact source location | brief mathematical step | ISO 8601 timestamp with offset
+```
+
+Use `not started`, `in progress`, or `complete`. Put the main theorem statement rows in a short overview at the top, then all reusable-prerequisite sections with their justifications and work rows, then the main-proof ledger. Keep prerequisite work and main-proof work in strict forward dependency order; the main theorem overview is not an execution ordering. Give each substantial source step one row, including unnumbered prerequisites needed to expose a gap. Do not hide distinct obligations in one broad row or count every implementation helper as a milestone. Keep source-to-Lean mappings in declaration docstrings and the continuation notes, or the existing dedicated mapping format, so every claimed completion can be traced to actual code.
+
+All timestamps written by the agent must use the computer's local timezone, obtained from the system, with the correct UTC offset for the date and time being recorded. This applies to prompt logs, instructions, status changes, prerequisite justifications, error reports, verification records, and any other timestamped output. Do not substitute UTC, a fixed timezone, or a timezone inherited from an older project. Convert known event times to the computer's local timezone; when recording the current time, read the local system clock. Preserve a row's timestamp until its status changes; label an initial retrospective audit as such rather than inventing a completion date. Record the latest full-build and axiom-check outcome separately. Mark complete only after verification; record partial estimates and unresolved bridges in continuation notes without inflating the source status.
+
+When a blueprint already has Lean metadata, synchronize it using the project's documented conventions and available local tooling. Verify the mapping against the declarations and ledger; existing `\leanok` markers do not establish proof completion. Preserve the distinction between a formalized statement and its proof. Do not invent metadata infrastructure or mark an ambiguous source label complete.
+
+## Verify and report
+
+- Verify that each library retains its default whole-module root and that its standard top-level import file exists. Ensure all intended library modules, including the authorized formalization and reusable prerequisites, are reachable from that file. Add or repair imports rather than listing individual files in Lake `roots` or bypassing the root through `globs`. The top-level import file has the standing authorization above; other extra source files still require authorization. Scratch files must not enter this import graph.
+- Run the pinned project's full build (`lake build` unless local instructions specify another command). Check affected source directly with `lake env lean path/to/File.lean` when needed to ensure current sources were checked; do not rely on stale `.olean` artifacts.
+- Use `#print axioms` on completed targets, including intermediate source results when closing them. Allowed dependencies are a subset of `propext`, `Classical.choice`, and `Quot.sound`. Check transitive dependencies, not just the visible proof text. `sorryAx`, new mathematical axioms, and extra trust assumptions fail this completion standard.
+- Inspect owned source for placeholders and the diff for accidental statement changes; preserve all existing completed results. A clean placeholder text scan alone is insufficient. Remove only owned scratch artifacts that are no longer needed.
+- Verify source coverage and documentation against the actual Lean declarations. A successful build alone does not prove source fidelity or completion of omitted targets. Report environmental build failures separately from proof failures, and never claim an unrun check passed.
+
+Give brief progress reports about completed mathematical source steps and material obstacles. At handoff report the targets proved, checks performed, exact remaining gaps, and next logical item. Keep detailed evidence in the repository records. Do not commit, push, publish, submit to a registry, or launch unrelated documentation/deployment work unless requested or already authorized.

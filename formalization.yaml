@@ -49,7 +49,7 @@ automation:
       models: ["gpt-5.5-xhigh"]
       framework: "Codex"
       tool_setup: "Codex generated the proofs across three sessions for supporting arguments and the final limiting argument."
-  notes: "Machine-generated proofs are isolated in LeanSuperorthogonality/Codex; see the README's Autoformalization section."
+  notes: "Machine-generated proofs are isolated in LeanSuperorthogonality/Auto; see the README's Autoformalization section."
 fidelity:
   divergences: >-
     The Lean statement uses representatives of Lp classes, makes almost-everywhere
