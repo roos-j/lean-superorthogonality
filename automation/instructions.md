@@ -126,3 +126,8 @@ Completed (2026-10-12T22:25:18.5515505-04:00): v4.35.0-rc4 upgrade builds succes
 
 Commit and push the verified toolchain update, then prepare both CDW Theorems 1.1 and 1.4 on a new palomar-cdw branch. Keep all Palomar submission files off master. This explicitly authorizes the conventional root Challenge/Solution files on that branch. Preserve the commit convention.
 
+CDW preparation complete locally (2026-10-12T22:31:49.1296081-04:00): canonical CDW Theorems 1.1 and 1.4 only; Challenge/Solution, comparator, metadata, README and official preflight workflow are on palomar-cdw. Master was pushed at 7189f29 and has no submission files. Preparation edits remain uncommitted; no Palomar submission performed. Build, quick comparator, metadata schema and local structural checks pass. Full Linux verification awaits a pushed immutable branch commit.
+
+## Commit Palomar preparation (2026-10-12T22:43:20.4313518-04:00, recording time)
+
+Commit the prepared CDW Palomar files and their build, documentation and tracking changes on palomar-cdw using the established [codex] prefix and Codex coauthor trailer. No push requested in this turn.

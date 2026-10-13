@@ -1,7 +1,7 @@
 name = "lean-superorthogonality"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["LeanSuperorthogonality"]
+defaultTargets = ["LeanSuperorthogonality", "Challenge", "Solution"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -16,4 +16,10 @@ rev = "v4.35.0-rc4"
 
 [[lean_lib]]
 name = "LeanSuperorthogonality"
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"
 

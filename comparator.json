@@ -1,0 +1,9 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "Superorthogonal.CDW.sqfct_estimate_of_superorthogonal",
+    "Superorthogonal.CDW.cone_sqfct_estimate"
+  ],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
+}
