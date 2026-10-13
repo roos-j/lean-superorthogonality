@@ -261,3 +261,6 @@ complete | Theorems.lean, cone_sqfct_estimate | Identify conic sectors and L4 no
 
 Verification (2026-10-12T21:15:36.2080774-04:00): lake build LeanSuperorthogonality.Auto.Theorems passes without warnings. Auto.cdwConst_le_46 and Auto.cone_sqfct_estimate depend only on propext, Classical.choice, Quot.sound; the earlier square-function theorem remains axiom-clean. The numerical proof uses psiL1 <= 7/2 from cutoff energies 3/2 and 96 and weighted Cauchy-Schwarz with Plancherel. Full lake build is blocked by existing imports of the absent LeanSuperorthogonality/PointwiseEstimate.lean and LeanSuperorthogonality/MainTheorem.lean in the root module and Solution.lean. Those files were left untouched per the user's scope restriction. All Lean edits for this request are in Auto/Theorems.lean.
 
+
+Verification (2026-10-12T21:58:56.8099425-04:00): Updated Solution.lean import and documentation to LeanSuperorthogonality.Theorems under explicit user authorization. Full lake build passes (8576 jobs), resolving the prior missing-import blocker. Challenge.lean retains its intentional sorry. Changes are uncommitted.
+

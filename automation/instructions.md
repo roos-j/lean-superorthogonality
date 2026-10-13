@@ -93,3 +93,20 @@ Completed (2026-10-12T21:15:36.2080774-04:00): Auto.cone_sqfct_estimate and Auto
 
 Commit the current changes with exact subject add CDW, GWZ and both Claude and Codex as coauthors. This overrides the default commit-subject prefix. No push requested.
 
+
+## Solution import fix (2026-10-12T21:58:11.6944089-04:00, recording time)
+
+The user explicitly authorizes fixing Solution.lean outside Auto/. Update its obsolete import and documentation to LeanSuperorthogonality.Theorems and verify the full build. No new commit requested.
+
+
+## Commit convention (2026-10-12T21:58:56.8099425-04:00, recording time)
+
+For future commits, use the [codex] subject prefix, keep the description to one brief line, and include Co-authored-by: Codex <codex@openai.com> as a trailer. This supersedes the prior one-off exact-subject instruction. This reminder does not request a new commit.
+
+Solution import fix verified (2026-10-12T21:58:56.8099425-04:00): full lake build passes; only the intentional Challenge.lean sorry warning remains.
+
+
+## Commit, with push deferred (2026-10-12T22:02:20.3797698-04:00, recording time)
+
+Commit the pending Solution.lean fix and tracking updates under the established [codex] convention. The follow-up instruction defers pushing; do not push until authorized again.
+
