@@ -873,7 +873,7 @@ local instance holderTriple_four_four_two : ENNReal.HolderTriple 4 4 2 := ⟨by
 /-- A product of two members of `L^4` lies in `L^2`. -/
 lemma memLp_two_mul {N : ℕ} {μ : Measure α} {f : Fin N → α → ℂ}
     (hf : ∀ n, MemLp (f n) 4 μ) (i j : Fin N) :
-    MemLp (fun x ↦ f i x * f j x) 2 μ := (hf j).mul (hf i)
+    MemLp (fun x ↦ f i x * f j x) 2 μ := (hf i).mul (hf j)
 
 /-- A product of four members of `L^4` is integrable. -/
 lemma integrable_quadruple {N : ℕ} {μ : Measure α} {f : Fin N → α → ℂ}
@@ -927,8 +927,8 @@ lemma integral_pairingSum_eq_zero {N : ℕ} {μ : Measure α} {f : Fin N → α 
 lemma integrable_norm_mul₄ {N : ℕ} {μ : Measure α} {f : Fin N → α → ℂ}
     (hf : ∀ n, MemLp (f n) 4 μ) (i j k l : Fin N) :
     Integrable (fun x ↦ ‖f i x‖ * ‖f j x‖ * (‖f k x‖ * ‖f l x‖)) μ := by
-  have h1 : MemLp (fun x ↦ ‖f i x‖ * ‖f j x‖) 2 μ := ((hf j).norm).mul ((hf i).norm)
-  have h2 : MemLp (fun x ↦ ‖f k x‖ * ‖f l x‖) 2 μ := ((hf l).norm).mul ((hf k).norm)
+  have h1 : MemLp (fun x ↦ ‖f i x‖ * ‖f j x‖) 2 μ := ((hf i).norm).mul ((hf j).norm)
+  have h2 : MemLp (fun x ↦ ‖f k x‖ * ‖f l x‖) 2 μ := ((hf k).norm).mul ((hf l).norm)
   exact h1.integrable_mul h2
 
 lemma aestronglyMeasurable_symForm {N : ℕ} {μ : Measure α} {f : Fin N → α → ℂ}

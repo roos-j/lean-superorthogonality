@@ -115,3 +115,14 @@ Commit the pending Solution.lean fix and tracking updates under the established 
 
 Create palomar-gpry preserving the GPRY Palomar submission files, including formalization.yaml; remove those files from master. Scope includes Challenge.lean, Solution.lean, comparator.json, formalization.yaml, the Comparator workflow, and necessary Lake/README updates. Preserve proof modules on both branches. No push authorized; keep master checked out.
 
+
+## Toolchain upgrade (2026-10-12T22:11:40.6126050-04:00, recording time)
+
+Update Lean and Mathlib together to a Palomar-supported version, then build and audit. Selected v4.35.0-rc4: installed locally, matching Mathlib tag verified, and newer than Palomar minimum v4.35.0-rc2. Preserve theorem statements and restrict Lean proof edits to Auto/. No commit or push requested.
+
+Completed (2026-10-12T22:25:18.5515505-04:00): v4.35.0-rc4 upgrade builds successfully; public target axioms are clean. Only Auto/ Lean files required compatibility edits; public statements preserved. No commit or push.
+
+## Commit, push and CDW Palomar preparation (2026-10-12T22:26:26.3260959-04:00, recording time)
+
+Commit and push the verified toolchain update, then prepare both CDW Theorems 1.1 and 1.4 on a new palomar-cdw branch. Keep all Palomar submission files off master. This explicitly authorizes the conventional root Challenge/Solution files on that branch. Preserve the commit convention.
+

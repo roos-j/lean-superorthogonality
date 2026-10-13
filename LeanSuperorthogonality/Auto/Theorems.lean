@@ -246,7 +246,8 @@ lemma integral_sq_deriv_psi_le : (∫ x : ℝ, deriv psi x ^ 2) ≤ 96 := by
       (hc.intervalIntegrable _ _)
   rw [intervalIntegral.integral_const_mul, hFTC] at hleft hright
   rw [he, ← intervalIntegral.integral_add_adjacent_intervals
-    ((hc.pow 2).intervalIntegrable 0 1) ((hc.pow 2).intervalIntegrable 1 2)]
+    ((show Continuous (fun x ↦ deriv psi x ^ 2) from hc.pow 2).intervalIntegrable 0 1)
+    ((show Continuous (fun x ↦ deriv psi x ^ 2) from hc.pow 2).intervalIntegrable 1 2)]
   rcases psi_endpoints with ⟨h0, h1, h2⟩
   rw [h0, h1] at hleft
   rw [h1, h2] at hright
@@ -271,7 +272,7 @@ lemma integral_sq_psi_le : (∫ x : ℝ, psi x ^ 2) ≤ 3 / 2 := by
   rw [he]
   calc (∫ x in (1 / 2 : ℝ)..2, psi x ^ 2) ≤ ∫ x in (1 / 2 : ℝ)..2, (1 : ℝ) := by
         apply intervalIntegral.integral_mono_on (by norm_num)
-          ((hc.pow 2).intervalIntegrable _ _) (continuous_const.intervalIntegrable _ _)
+          ((show Continuous (fun x ↦ psi x ^ 2) from hc.pow 2).intervalIntegrable _ _) (continuous_const.intervalIntegrable _ _)
         intro x _
         nlinarith [psi_nonneg x, psi_le_one x]
     _ = 3 / 2 := by norm_num
@@ -400,7 +401,7 @@ lemma conic_sector_subset_capSector {N : ℕ} (j : Fin N) :
     rwa [hleft, hright]
   · convert hu using 1
     norm_num [zpow_neg, one_div, inv_pow]
-    rfl
+
   · ext i
     fin_cases i <;> simp [Phi, h0, h1, h2]
 

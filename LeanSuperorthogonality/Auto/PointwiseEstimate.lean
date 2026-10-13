@@ -153,10 +153,10 @@ private lemma diagonal_enorm_tsum_le_B_sq (a : Fin 2 → ι → ℂ)
       (μ := (Measure.count : Measure ι)) hpq h0 h1
     rw [eLpNorm_eq_lintegral_rpow_enorm_toReal
         (by norm_num : (2 : ENNReal) ≠ 0)
-        (by norm_num : (2 : ENNReal) ≠ ⊤),
+        (by norm_num : (2 : ENNReal) ≠ ⊤) measurable_from_top.aestronglyMeasurable,
       eLpNorm_eq_lintegral_rpow_enorm_toReal
         (by norm_num : (2 : ENNReal) ≠ 0)
-        (by norm_num : (2 : ENNReal) ≠ ⊤)]
+        (by norm_num : (2 : ENNReal) ≠ ⊤) measurable_from_top.aestronglyMeasurable]
     simpa [one_div] using h
   have hB0 :
       eLpNorm (a 0) 2 (Measure.count : Measure ι) ≤
@@ -656,10 +656,10 @@ private lemma collision_sum_enorm_le_one {k : ℕ} (hk : 2 ≤ k)
       (μ := (Measure.count : Measure ι)) hpq h0 h1
     rw [eLpNorm_eq_lintegral_rpow_enorm_toReal
         (by norm_num : (2 : ENNReal) ≠ 0)
-        (by norm_num : (2 : ENNReal) ≠ ⊤),
+        (by norm_num : (2 : ENNReal) ≠ ⊤) measurable_from_top.aestronglyMeasurable,
       eLpNorm_eq_lintegral_rpow_enorm_toReal
         (by norm_num : (2 : ENNReal) ≠ 0)
-        (by norm_num : (2 : ENNReal) ≠ ⊤)]
+        (by norm_num : (2 : ENNReal) ≠ ⊤) measurable_from_top.aestronglyMeasurable]
     simpa [one_div] using h
   have hBi :
       eLpNorm (a (Fin.castSucc i)) 2 (Measure.count : Measure ι) ≤
@@ -705,7 +705,8 @@ private lemma eLpNorm_two_lt_top_of_summable_norm (a : ι → ℂ)
     (ha : Summable (fun j ↦ ‖a j‖)) :
     eLpNorm a 2 < ⊤ := by
   rw [eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
-    (by norm_num : (2 : ENNReal) ≠ 0) (by norm_num : (2 : ENNReal) ≠ ⊤)]
+    (by norm_num : (2 : ENNReal) ≠ 0) (by norm_num : (2 : ENNReal) ≠ ⊤)
+    measurable_from_top.aestronglyMeasurable]
   change (∫⁻ j : ι, ‖a j‖ₑ ^ (2 : ENNReal).toReal
     ∂(Measure.count : Measure ι)) < ⊤
   rw [lintegral_count]
@@ -728,7 +729,7 @@ private lemma B_ne_top_of_summable_norm {k : ℕ} (hk : 2 ≤ k)
     B hk a ≠ ⊤ := by
   rw [← lt_top_iff_ne_top]
   unfold B
-  rw [Finset.max'_lt_iff]
+  apply (Finset.max'_lt_iff _ _).mpr
   intro y hy
   rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
   exact eLpNorm_two_lt_top_of_summable_norm (a i) (ha i)
@@ -743,7 +744,7 @@ omit [Countable ι] in
 private lemma eLpNorm_mul_le_of_right_enorm_le_one (a b : ι → ℂ)
     (hb : ∀ j, ‖b j‖ₑ ≤ 1) :
     eLpNorm (fun j ↦ a j * b j) 2 ≤ eLpNorm a 2 := by
-  apply eLpNorm_mono_enorm
+  apply eLpNorm_mono_enorm measurable_from_top.aestronglyMeasurable
   intro j
   rw [enorm_mul]
   exact mul_le_of_le_one_right (show (0 : ENNReal) ≤ ‖a j‖ₑ from bot_le) (hb j)
@@ -754,7 +755,7 @@ private lemma B_initFamily_le_one {k : ℕ} (hk : 2 ≤ k)
     (hB : B (by omega : 2 ≤ k + 1) a ≤ 1) :
     B hk (initFamily a) ≤ 1 := by
   unfold B
-  rw [Finset.max'_le_iff]
+  apply Finset.max'_le
   intro y hy
   rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
   exact (Finset.le_max' _ _ (by simp [initFamily])).trans hB
@@ -780,7 +781,7 @@ private lemma B_collisionFamily_le_one {k : ℕ} (hk : 2 ≤ k)
     (eLpNorm_mul_le_of_right_enorm_le_one (a (Fin.castSucc i)) (a (Fin.last k))
       hlast_point).trans (hcoord i)
   unfold B
-  rw [Finset.max'_le_iff]
+  apply Finset.max'_le
   intro y hy
   rcases Finset.mem_image.mp hy with ⟨t, _, rfl⟩
   by_cases hti : t = i
@@ -854,7 +855,6 @@ private lemma collision_product_sums_bound {k : ℕ} (hk : 2 ≤ k)
       (∏ t ∈ Finset.univ.erase i, ‖s (collisionFamily a i t)‖ₑ) ≤
           ∏ _t ∈ Finset.univ.erase i, M := by
         exact Finset.prod_le_prod
-          (fun _t _ht ↦ bot_le)
           (fun t ht ↦ hcoord t (Finset.mem_erase.mp ht).1)
       _ = M ^ (k - 1) := by
         rw [Finset.prod_const, Finset.card_erase_of_mem (Finset.mem_univ i),
@@ -1106,7 +1106,7 @@ private lemma B_rescaleFamily_le_one (hk : 2 ≤ k)
         simp [rescaleFamily, htop]
       simp [hzero]
     unfold B
-    rw [Finset.max'_le_iff]
+    apply Finset.max'_le
     intro y hy
     rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
     exact hcoord i
@@ -1134,7 +1134,7 @@ private lemma B_rescaleFamily_le_one (hk : 2 ≤ k)
         mul_le_mul' le_rfl (eLpNorm_coord_le_B hk a i)
       exact (eLpNorm_rescaleFamily_le hk a i).trans (hmul.trans_eq hscale)
     unfold B
-    rw [Finset.max'_le_iff]
+    apply Finset.max'_le
     intro y hy
     rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
     exact hcoord i

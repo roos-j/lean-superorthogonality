@@ -81,7 +81,7 @@ private lemma A_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (hr : 1 ≤ 
   change ENNReal.ofReal (T.max' _) = ENNReal.ofReal ‖(∑' j, f j) x‖
   congr 1
   apply le_antisymm
-  · rw [Finset.max'_le_iff]
+  · apply Finset.max'_le
     intro y hy
     rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
     exact le_of_eq (s_pointwiseFamily_eq f r x i)
@@ -101,7 +101,8 @@ private lemma eLpNorm_count_two_fintype [MeasurableSpace ι] [MeasurableSingleto
     eLpNorm a 2 (Measure.count : Measure ι) =
       ENNReal.ofReal ((∑ j : ι, ‖a j‖ ^ 2) ^ (2 : ℝ)⁻¹) := by
   rw [eLpNorm_eq_lintegral_rpow_enorm_toReal
-    (by norm_num : (2 : ENNReal) ≠ 0) (by norm_num : (2 : ENNReal) ≠ ⊤)]
+    (by norm_num : (2 : ENNReal) ≠ 0) (by norm_num : (2 : ENNReal) ≠ ⊤)
+    (measurable_of_countable a).aestronglyMeasurable]
   rw [lintegral_count, tsum_fintype]
   have hsum_nonneg : 0 ≤ ∑ j : ι, ‖a j‖ ^ 2 := by
     exact Finset.sum_nonneg fun j _ ↦ sq_nonneg ‖a j‖
@@ -154,7 +155,7 @@ private lemma B_pointwiseFamily [Finite ι] (f : ι → α → ℂ) (hr : 1 ≤ 
       simpa using eLpNorm_count_two_fintype (a := fun j : ι ↦ star (f j x))
   change T.max' _ = ENNReal.ofReal ((∑ j : ι, ‖f j x‖ ^ 2) ^ (2 : ℝ)⁻¹)
   apply le_antisymm
-  · rw [Finset.max'_le_iff]
+  · apply Finset.max'_le
     intro y hy
     rcases Finset.mem_image.mp hy with ⟨i, _, rfl⟩
     exact le_of_eq (hcoord i)
@@ -444,7 +445,7 @@ private lemma lintegral_sum_norm_pow_le_pointwise_bound [Finite ι] {f : ι → 
           simpa [R, P] using pointwise_bound_sqfct f hr x
 
 private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
-    (hr : 1 ≤ r) (_hf : TypeIVSuperorthogonal μ f r)
+    (hr : 1 ≤ r) (hf : TypeIVSuperorthogonal μ f r)
     (_hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (∑' j, f j) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
       ∫⁻ x, ‖(∑' j, f j) x‖ₑ ^ ((2 * r : ℕ) : ℝ) ∂μ := by
@@ -455,9 +456,10 @@ private lemma eLpNorm_tsum_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
   simpa [Nat.cast_mul] using
     eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (f := (∑' j, f j)) (p := (2 * r : NNReal))
       (by exact_mod_cast (by omega : 2 * r ≠ 0))
+      (aestronglyMeasurable_tsum_finite (μ := μ) hf)
 
 private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
-    (hr : 1 ≤ r) :
+    (hr : 1 ≤ r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
       ∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ ((2 * r : ℕ) : ℝ) ∂μ := by
   letI := Fintype.ofFinite ι
@@ -469,7 +471,7 @@ private lemma eLpNorm_sqfct_pow_eq_lintegral [Finite ι] {f : ι → α → ℂ}
         = ∫⁻ x, ‖sqfct f x‖ₑ ^ ((2 * r : ℕ) : ℝ) ∂μ := by
           simpa [Nat.cast_mul] using
             eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (f := sqfct f) (p := (2 * r : NNReal))
-              (by exact_mod_cast (by omega : 2 * r ≠ 0))
+              (by exact_mod_cast (by omega : 2 * r ≠ 0)) hsq.aestronglyMeasurable
     _ = ∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ ((2 * r : ℕ) : ℝ) ∂μ := by
           apply lintegral_congr_ae
           exact Filter.Eventually.of_forall fun x ↦ by
@@ -491,10 +493,10 @@ private lemma eLpNorm_tsum_pow_eq_lintegral_nat [Finite ι] {f : ι → α → �
     exact ENNReal.rpow_natCast _ (2 * r)
 
 private lemma eLpNorm_sqfct_pow_eq_lintegral_nat [Finite ι] {f : ι → α → ℂ}
-    (hr : 1 ≤ r) :
+    (hr : 1 ≤ r) (hsq : MemLp (sqfct f) (2 * r) μ) :
     eLpNorm (sqfct f) (2 * r) μ ^ ((2 * r : ℕ) : ℝ) =
       ∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ (2 * r) ∂μ := by
-  rw [eLpNorm_sqfct_pow_eq_lintegral (μ := μ) (f := f) hr]
+  rw [eLpNorm_sqfct_pow_eq_lintegral (μ := μ) (f := f) hr hsq]
   apply lintegral_congr_ae
   exact Filter.Eventually.of_forall fun x ↦ by
     change (ENNReal.ofReal (sqfct f x)) ^ ((2 * r : ℕ) : ℝ) =
@@ -667,7 +669,7 @@ private lemma eLpNorm_tsum_power_le [Finite ι] {f : ι → α → ℂ}
             lintegral_mixed_le_lintegral_powers (μ := μ) hr hf hsq
       _ = (M ^ ((2 * r : ℕ) : ℝ)) ^ (1 / (r : ℝ)) *
             (N ^ ((2 * r : ℕ) : ℝ)) ^ (1 - 1 / (r : ℝ)) := by
-            rw [← eLpNorm_sqfct_pow_eq_lintegral_nat (μ := μ) (f := f) hr]
+            rw [← eLpNorm_sqfct_pow_eq_lintegral_nat (μ := μ) (f := f) hr hsq]
             rw [← eLpNorm_tsum_pow_eq_lintegral_nat (μ := μ) hr hf hsq]
       _ = M ^ 2 * N ^ (2 * r - 2) := by
             rw [ennreal_rpow_two_mul_inv hr M, ennreal_rpow_two_mul_one_sub_inv hr N]
@@ -684,7 +686,7 @@ private lemma eLpNorm_tsum_power_le [Finite ι] {f : ι → α → ℂ}
           simpa [K] using lintegral_pointwise_bound_le_split (μ := μ) hr hf hsq
     _ ≤ K * (M ^ ((2 * r : ℕ) : ℝ) + M ^ 2 * N ^ (2 * r - 2)) := by
           gcongr
-          · rw [← eLpNorm_sqfct_pow_eq_lintegral_nat (μ := μ) (f := f) hr]
+          · rw [← eLpNorm_sqfct_pow_eq_lintegral_nat (μ := μ) (f := f) hr hsq]
 
 omit [MeasurableSpace α] in
 private lemma C_sq_of_two_le (hr : 2 ≤ r) :
@@ -822,7 +824,7 @@ private lemma eLpNorm_tsum_le_sqfct_of_one [Finite ι] {f : ι → α → ℂ}
             rw [eLpNorm_tsum_pow_eq_lintegral (μ := μ) (r := 1) (by norm_num) hf hsq']
       _ ≤ ∫⁻ x, (ENNReal.ofReal (sqfct f x)) ^ ((2 * 1 : ℕ) : ℝ) ∂μ := hpoint
       _ = eLpNorm (sqfct f) (2 * ((1 : ℕ) : ENNReal)) μ ^ ((2 * 1 : ℕ) : ℝ) := by
-            rw [← eLpNorm_sqfct_pow_eq_lintegral (μ := μ) (f := f) (r := 1) (by norm_num)]
+            rw [← eLpNorm_sqfct_pow_eq_lintegral (μ := μ) (f := f) (r := 1) (by norm_num) hsq']
   have hle := (ENNReal.rpow_le_rpow_iff (by norm_num : 0 < ((2 * 1 : ℕ) : ℝ))).mp hpow
   simpa [htwoone] using hle
 
@@ -989,13 +991,14 @@ private lemma sqfct_restrict_le_sqtail_ae {f : ι → α → ℂ}
     ht_sum_le (by positivity)
 
 private lemma eLpNorm_sqfct_restrict_le_sqtail {f : ι → α → ℂ}
-    (_hf : ∀ i, Measurable (f i))
+    (hf : ∀ i, Measurable (f i))
     (hsum : ∀ᵐ x ∂μ, Summable fun j ↦ ‖f j x‖ ^ 2) {s t : Finset ι}
     (hdisj : Disjoint t s) :
     eLpNorm (sqfct (fun i : {j // j ∈ t} ↦ f i)) (2 * r) μ ≤
       eLpNorm (sqtail f s) (2 * r) μ := by
   letI : Fintype {j // j ∈ t} := Finset.fintypeCoeSort t
-  refine eLpNorm_mono_ae ?_
+  refine eLpNorm_mono_ae
+    (aemeasurable_sqfct_fintype (μ := μ) (fun i : {j // j ∈ t} ↦ hf i)).aestronglyMeasurable ?_
   exact (sqfct_restrict_le_sqtail_ae (μ := μ) hsum hdisj).mono fun x hx ↦ by
     simpa [Real.norm_of_nonneg (sqfct_nonneg_of_summable x),
       Real.norm_of_nonneg (sqtail_nonneg s x)] using hx
@@ -1076,7 +1079,8 @@ private lemma finset_sum_norm_le_sqfct_toReal [Countable ι] [Fact (1 ≤ (2 * (
   have htail_le :
       eLpNorm (sqtail (fun i ↦ (f i : α → ℂ)) ∅) (2 * r) μ ≤
         eLpNorm (sqfct <| fun i ↦ f i) (2 * r) μ := by
-    refine eLpNorm_mono_ae ?_
+    refine eLpNorm_mono_ae
+      (aemeasurable_sqtail (μ := μ) hf.measurable ∅).aestronglyMeasurable ?_
     exact (sqtail_le_sqfct_ae (μ := μ)
       (f := fun i ↦ (f i : α → ℂ)) hsum ∅).mono fun x hx ↦ by
         simpa [Real.norm_of_nonneg (sqtail_nonneg ∅ x),
@@ -1111,7 +1115,7 @@ private lemma tendsto_eLpNorm_sqtail_atTop_zero [Countable ι] (hr : 1 ≤ r)
           ∫⁻ x, ‖sqtail (fun i ↦ (f i : α → ℂ)) s x‖ₑ ^ p.toReal ∂μ)
         Filter.atTop (nhds 0) := by
     have hfin : (∫⁻ x, ‖sqfct (fun i ↦ (f i : α → ℂ)) x‖ₑ ^ p.toReal ∂μ) ≠ ⊤ := by
-      exact (lintegral_rpow_enorm_lt_top_of_eLpNorm_lt_top hp0 hptop hsq.2).ne
+      exact (lintegral_rpow_enorm_lt_top_of_eLpNorm_lt_top hp0 hptop hsq).ne
     have hlim : ∀ᵐ x ∂μ,
         Filter.Tendsto
           (fun s : Finset ι ↦
@@ -1178,7 +1182,8 @@ private lemma tendsto_eLpNorm_sqtail_atTop_zero [Countable ι] (hr : 1 ≤ r)
     simpa [Function.comp_def] using hpow.comp h_int_tendsto
   have hpow0 : (0 : ENNReal) ^ (1 / p.toReal) = 0 :=
     by simpa [one_div] using ENNReal.zero_rpow_of_pos (inv_pos.mpr hp_pos)
-  simpa [p, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hptop, hpow0] using hnorm
+  simpa [p, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hptop
+    ((aemeasurable_sqtail (μ := μ) hf.measurable _).aestronglyMeasurable), hpow0] using hnorm
 
 theorem sqfct_estimate_of_type_iv_superorthogonal [Countable ι]
     [Fact (1 ≤ (2 * (r : ENNReal)))] (hr : 1 ≤ r)
