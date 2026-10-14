@@ -5,7 +5,7 @@ project:
   name: "Formalization of a sharp cone square-function estimate via superorthogonality"
   description: |-
     This is a Lean 4 formalization of Theorems 1.1 and 1.4 from the paper "Diameter-free reverse inequalities and superorthogonality" by A. Cushman, C. Demeter and S. Wu.
-    Theorem 1.1 is a reverse square-function estimate in L^4 under a superorthogonality hypothesis that is weaker than Type IV superorthogonality.
+    Theorem 1.1 is a reverse square-function estimate in L^4 under a superorthogonality hypothesis that is weaker than the Type IV superorthogonality of Gressman-Pierce-Roos-Yung.
     Theorem 1.4 applies a similar estimate to the three-dimensional light cone, yielding a refinement of the reverse cone square-function estimate of Guth-Wang-Zhang.
   authors: ["Joris Roos"]
   responsible_maintainers: ["Joris Roos"]
@@ -28,6 +28,12 @@ sources:
     location: "Theorem 1.1"
     relationship: "background"
     note: "Theorem 1.4 of Cushman-Demeter-Wu refines this cone square-function estimate. The Guth-Wang-Zhang theorem itself is not formalized here."
+  - title: "A new type of superorthogonality"
+    authors: ["Philip T. Gressman", "Lillian B. Pierce", "Joris Roos", "Po-Lam Yung"]
+    id: "Proc. Amer. Math. Soc. 152 (2024), 665-675, https://doi.org/10.1090/proc/16631; arXiv:2212.08956"
+    type: "paper"
+    relationship: "background"
+    note: "Studies type IV superorthogonality; the ordered superorthogonality hypothesis of Cushman-Demeter-Wu Theorem 1.1 is weaker. The GPRY results formalized elsewhere in this repository are not part of this submission."
 status:
   scope: >-
     Only the two CDW upper estimates are advertised by this Comparator configuration.
