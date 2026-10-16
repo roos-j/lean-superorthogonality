@@ -25,7 +25,9 @@ The theorem statements are in [`Theorems.lean`](LeanSuperorthogonality/Theorems.
 
 Palomar is a public, searchable registry of Lean formalizations whose proofs have been machine-checked. Each entry points to an immutable version of a public repository and records the exact formal statement that was checked, its dependencies, the result of the proof check, and the findings of a documented editorial review.
 
-* The Type IV superorthogonality formalization is registered in Palomar as [PALOMAR-2026-08-31-000015](https://palomar-registry.org/entry?id=PALOMAR-2026-08-31-000015&version=1).
+* The Type IV superorthogonality formalization is registered in Palomar as [PALOMAR-2026-08-31-000015](https://palomar-registry.org/entry?id=PALOMAR-2026-08-31-000015).
+
+* Theorems 1.1 and 1.4 from Cushman-Demeter-Wu are registered in Palomar as [PALOMAR-2026-10-16-000005](https://palomar-registry.org/entry?id=PALOMAR-2026-10-16-000005)
 
 ### Build instructions
 
