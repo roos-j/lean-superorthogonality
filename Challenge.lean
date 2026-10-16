@@ -66,10 +66,6 @@ def conic_sector {N : ℕ} (j : Fin N) : Set ℝ^3 :=
     |u| ≤ (N : ℝ) ^ (-2 : ℤ) ∧ ξ 0 = r ∧ ξ 1 = r * t ∧ ξ 2 = r * t ^ 2 + u }
 
 /-- Theorem 1.1 of Cushman–Demeter–Wu, arXiv:2609.13105v1.
-
-**Implementation notes:** We include the vacuous case `N = 0`.
-Note that both sides of the inequality are automatically members of `L^4(μ)`
-under the given hypotheses so junk values are avoided when `N ≥ 1`.
 We give an explicit absolute constant `C = 33`. -/
 theorem sqfct_estimate_of_superorthogonal {N : ℕ} {f : Fin N → α → ℂ}
     (hf : Superorthogonal μ f) (hf' : ∀ j, MemLp (f j) 4 μ) :
@@ -78,8 +74,6 @@ theorem sqfct_estimate_of_superorthogonal {N : ℕ} {f : Fin N → α → ℂ}
 
 /--
 Theorem 1.4 of Cushman–Demeter–Wu, arXiv:2609.13105v1.
-
-**Implementation note:** We include the trivial/vacuous cases `N = 0,1`.
 We give an explicit absolute constant `C = 46`. -/
 theorem cone_sqfct_estimate {N : ℕ} {f : Fin N → 𝓢(ℝ^3, ℂ)}
     (hf : ∀ j, support (fourier (f j)) ⊆ conic_sector j) :
