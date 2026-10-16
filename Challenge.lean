@@ -40,17 +40,14 @@ variable {ι : Type*} [Countable ι]
 @[inherit_doc EuclideanSpace]
 scoped notation:max "ℝ^" n:max => EuclideanSpace ℝ (Fin n)
 
-/-- The square function $S_f(x)=(\sum_j |f_j(x)|^2)^{1/2}$.
-Only finite families occur in the advertised results. -/
+/-- Square-function associated with the family of functions `f` -/
 def sqfct (f : ι → α → ℂ) (x : α) := (∑' j, ‖f j x‖ ^ 2) ^ (2 : ℝ)⁻¹
 
 namespace CDW
 
 variable [LinearOrder ι]
 
-/-- Ordered superorthogonality: each function is measurable, and for every
-$i<j<k<l$, the products $f_i f_j\overline{f_k f_l}$ and
-$f_i f_l\overline{f_j f_k}$ are integrable with zero integral. -/
+/-- The notion of superorthogonality from Thm. 1.1 of Cushman–Demeter–Wu, arXiv:2609.13105v1 -/
 structure Superorthogonal (f : ι → α → ℂ) : Prop where
   measurable : ∀ j, Measurable (f j)
   integrable : ∀ i j k l, i < j → j < k → k < l →
@@ -60,33 +57,30 @@ structure Superorthogonal (f : ι → α → ℂ) : Prop where
     ∫ x, f i x * f j x * conj (f k x) * conj (f l x) ∂μ = 0 ∧
     ∫ x, f i x * f l x * conj (f j x) * conj (f k x) ∂μ = 0
 
-/-- The closed thickened conic sector parametrized by $(r,rt,rt^2+u)$,
-where $1\le r\le2$, $j/N\le t\le(j+1)/N$ and $|u|\le N^{-2}$.
-Sectors are indexed by $0\le j<N$. -/
+/-- The conic sectors from Thm. 1.4  of Cushman–Demeter–Wu, arXiv:2609.13105v1
+
+**Implementation note:** We let `j` run from `0` to `N - 1` instead of from `1` to `N`.
+-/
 def conic_sector {N : ℕ} (j : Fin N) : Set ℝ^3 :=
   { ξ | ∃ r t u : ℝ, r ∈ Icc 1 2 ∧ t ∈ Icc (j / (N : ℝ)) ((j + 1) / (N : ℝ)) ∧
     |u| ≤ (N : ℝ) ^ (-2 : ℤ) ∧ ξ 0 = r ∧ ξ 1 = r * t ∧ ξ 2 = r * t ^ 2 + u }
 
-/-- For any measure space, natural number $N$ and ordered-superorthogonal
-family of complex-valued L4 functions indexed by $0\le j<N$,
-$$
-\left\|\sum_j f_j\right\|_{L^4(\mu)}
-\le 33(1+\log N)^2\|S_f\|_{L^4(\mu)}.
-$$
-The empty family is included. -/
+/-- Theorem 1.1 of Cushman–Demeter–Wu, arXiv:2609.13105v1.
+
+**Implementation notes:** We include the vacuous case `N = 0`.
+Note that both sides of the inequality are automatically members of `L^4(μ)`
+under the given hypotheses so junk values are avoided when `N ≥ 1`.
+We give an explicit absolute constant `C = 33`. -/
 theorem sqfct_estimate_of_superorthogonal {N : ℕ} {f : Fin N → α → ℂ}
     (hf : Superorthogonal μ f) (hf' : ∀ j, MemLp (f j) 4 μ) :
     eLpNorm (∑ j, f j) 4 μ ≤ ENNReal.ofReal (33 * (1 + Real.log N) ^ 2) * eLpNorm (sqfct f) 4 μ := by
   sorry
 
-/-- For every natural number $N$ and family of complex-valued Schwartz
-functions on Euclidean three-space whose Fourier supports lie in the
-corresponding conic sectors,
-$$
-\left\|\sum_j f_j\right\|_{L^4}
-\le 46(1+\log N)^{1/4}\|S_f\|_{L^4}.
-$$
-The norms use Lebesgue measure, and the cases $N=0,1$ are included. -/
+/--
+Theorem 1.4 of Cushman–Demeter–Wu, arXiv:2609.13105v1.
+
+**Implementation note:** We include the trivial/vacuous cases `N = 0,1`.
+We give an explicit absolute constant `C = 46`. -/
 theorem cone_sqfct_estimate {N : ℕ} {f : Fin N → 𝓢(ℝ^3, ℂ)}
     (hf : ∀ j, support (fourier (f j)) ⊆ conic_sector j) :
     eLpNorm (∑ j, f j) 4 volume ≤
